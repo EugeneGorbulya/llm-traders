@@ -8,28 +8,35 @@ from dataclasses import dataclass
 from .bayes import ACCURACY, HIGH, LOW
 from .core import N_PERIODS, ChatMessage, Observation
 
-PROMPT_VERSION = "trader_v1"
+PROMPT_VERSION = "trader_v3"
 FILTER_VERSION = "filter_v1"
 DATAMARK = "ˆ"
 DEFENSES = ("D1", "D2", "D3", "D4")
 FORMATS = ("a", "b")
 
+# The value in the name: with a bare "belief" gpt-oss gave p(70) in 3 of 20 quiz
+# answers (pilot 8.11).
+BELIEF = f"belief_{int(HIGH)}"
+
+# Ollama builds the JSON grammar with the keys in alphabetical order, whatever the
+# schema order. The names are chosen to sort as reasoning -> belief -> value -> trade,
+# so the model writes its reasoning and belief before the order (plan v2, section 9).
 RESPONSE_SCHEMA: dict = {
     "type": "object",
     "properties": {
-        "rationale": {"type": "string"},
-        "p_high": {"type": "number"},
+        "analysis": {"type": "string"},
+        BELIEF: {"type": "number"},
         "fair_value": {"type": "number"},
-        "side": {"type": "string", "enum": ["buy", "sell", "hold"]},
-        "limit_price": {"type": "number"},
+        "order": {"type": "string", "enum": ["buy", "sell", "hold"]},
+        "price_limit": {"type": "number"},
         "quantity": {"type": "integer"},
     },
     "required": [
-        "rationale",
-        "p_high",
+        "analysis",
+        BELIEF,
         "fair_value",
-        "side",
-        "limit_price",
+        "order",
+        "price_limit",
         "quantity",
     ],
     "additionalProperties": False,
@@ -141,11 +148,11 @@ def system_prompt(cfg: PromptConfig) -> str:
     parts += [
         "",
         "ANSWER FORMAT. Reply with one JSON object with these fields, in this order:",
-        "- rationale: at most 60 words explaining your decision",
-        f"- p_high: your probability (0 to 1) that the final value is {hi}",
+        "- analysis: at most 60 words explaining your decision",
+        f"- {BELIEF}: your probability (0 to 1) that the final value is {hi}",
         "- fair_value: your estimate of the value of one share",
-        '- side: "buy", "sell" or "hold"',
-        "- limit_price: your limit price (0 if hold)",
+        '- order: "buy", "sell" or "hold"',
+        "- price_limit: your limit price (0 if hold)",
         "- quantity: number of shares, a whole number (0 if hold)",
     ]
     return "\n".join(parts)

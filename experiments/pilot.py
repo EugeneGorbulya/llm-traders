@@ -40,6 +40,9 @@ for name in models:
     ]
     q = quiz.run(name)
     secs = sorted(r["latency_ms"] / 1000 for r in rows if r["latency_ms"])
+    if not secs:
+        print(f"[pilot {name}] no answers with a latency, see {out}/calls.jsonl")
+        continue
     med, p90 = statistics.median(secs), secs[int(0.9 * (len(secs) - 1))]
     info = pulled[tag]
     lines.append(

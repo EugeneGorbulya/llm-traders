@@ -1,0 +1,7 @@
+{
+  "model": "qwen3-8b",
+  "valid_share": 1.0,
+  "direction_share": 1.0,
+  "mean_abs_err": 0.05097701149425287,
+  "passed": true
+}

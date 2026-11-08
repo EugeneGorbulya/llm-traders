@@ -18,6 +18,7 @@ from .log import JsonlLogger
 Validator = Callable[[dict[str, Any]], tuple[bool, dict[str, Any], str | None]]
 
 _JSON_OBJ = re.compile(r"\{.*\}", re.DOTALL)
+MAX_SERVER_ERRORS_IN_A_ROW = 6
 
 
 def extract_json(text: str) -> dict[str, Any] | None:
@@ -61,6 +62,7 @@ class LLMClient:
     stats: dict[str, int] = field(
         default_factory=lambda: {"calls": 0, "hits": 0, "invalid": 0}
     )
+    _server_errors_in_a_row: int = field(default=0, init=False)
 
     def backend(self, cfg: ModelConfig) -> Backend:
         if cfg.backend not in self._backends:
@@ -107,6 +109,7 @@ class LLMClient:
                     raise RuntimeError(f"offline mode: cache miss for {cfg.name}")
                 try:
                     last = be.generate(cfg, messages, schema, seed)
+                    self._server_errors_in_a_row = 0
                 except urllib.error.HTTPError as e:
                     # 4xx means a setup error (tag not pulled, bad request): stop, or
                     # the whole grid would be logged as invalid model answers. 5xx
@@ -114,6 +117,14 @@ class LLMClient:
                     if e.code < 500:
                         raise RuntimeError(
                             f"{cfg.name}: HTTP {e.code} {e.reason}"
+                        ) from e
+                    # But a crashed llama-server answers every call with 500: after a
+                    # run of them the model cannot run at all, so stop the run.
+                    self._server_errors_in_a_row += 1
+                    if self._server_errors_in_a_row >= MAX_SERVER_ERRORS_IN_A_ROW:
+                        raise RuntimeError(
+                            f"{cfg.name}: HTTP {e.code} {e.reason} "
+                            f"{MAX_SERVER_ERRORS_IN_A_ROW} раз подряд"
                         ) from e
                     last = RawResponse(text="", error=repr(e))
                 except TimeoutError as e:

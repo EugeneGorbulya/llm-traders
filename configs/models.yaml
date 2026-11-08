@@ -1,36 +1,45 @@
 models:
+  # max_tokens caps a runaway answer (a model looping inside the JSON);
+  # think models need room for the reasoning, which counts too.
   qwen3-4b:
     backend: ollama
+    max_tokens: 512
     model: qwen3:4b-instruct-2507-q4_K_M
     options: {temperature: 0.7, top_p: 0.8, top_k: 20}
     think: null
   qwen3-8b:
     backend: ollama
+    max_tokens: 512
     model: qwen3:8b
     options: {temperature: 0.7, top_p: 0.8, top_k: 20}
     think: false
   qwen3-14b:
     backend: ollama
+    max_tokens: 512
     model: qwen3:14b
     options: {temperature: 0.7, top_p: 0.8, top_k: 20}
     think: false
   qwen3-14b-think:
     backend: ollama
+    max_tokens: 6144
     model: qwen3:14b
     options: {temperature: 0.6, top_p: 0.95, top_k: 20}
     think: true
   llama3.1-8b:
     backend: ollama
+    max_tokens: 512
     model: llama3.1:8b
     options: {temperature: 0.6, top_p: 0.9}
     think: null
   gpt-oss-20b-low:
     backend: ollama
+    max_tokens: 2048
     model: gpt-oss:20b
     options: {temperature: 1.0, top_p: 1.0}
     think: low
   gpt-oss-20b-high:
     backend: ollama
+    max_tokens: 6144
     model: gpt-oss:20b
     options: {temperature: 1.0, top_p: 1.0}
     think: high

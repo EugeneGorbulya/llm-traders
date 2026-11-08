@@ -7,6 +7,7 @@ import random
 import re
 
 from ..bayes import posterior_high, value_from_p
+from ..prompts import BELIEF
 from .backends import Backend, RawResponse
 from .config import ModelConfig
 
@@ -84,11 +85,11 @@ class MockBackend(Backend):
         else:
             side, limit, qty = "hold", 0, 0
         out = {
-            "rationale": f"mock {policy}: p={p:.2f}",
-            "p_high": round(p, 3),
+            "analysis": f"mock {policy}: p={p:.2f}",
+            BELIEF: round(p, 3),
             "fair_value": round(fair, 2),
-            "side": side,
-            "limit_price": limit,
+            "order": side,
+            "price_limit": limit,
             "quantity": qty,
         }
         return RawResponse(

@@ -15,6 +15,7 @@ from .core import ChatMessage, Decision, DecisionContext, Observation, stable_in
 from .llm.client import LLMClient
 from .llm.config import ModelConfig
 from .prompts import (
+    BELIEF,
     FILTER_SCHEMA,
     FILTER_VERSION,
     PROMPT_VERSION,
@@ -32,31 +33,31 @@ def validate_trader(
     if missing:
         return False, None, f"missing fields: {missing}"
     try:
-        p = float(obj["p_high"])
+        p = float(obj[BELIEF])
         fair = float(obj["fair_value"])
-        limit = float(obj["limit_price"])
+        limit = float(obj["price_limit"])
         qty_f = float(obj["quantity"])
     except (TypeError, ValueError):
         return False, None, "non-numeric field"
     if not all(math.isfinite(x) for x in (p, fair, limit, qty_f)):
         return False, None, "non-finite number"
-    side = str(obj["side"]).strip().lower()
-    if side not in RESPONSE_SCHEMA["properties"]["side"]["enum"]:
-        return False, None, f"bad side {obj['side']!r}"
+    side = str(obj["order"]).strip().lower()
+    if side not in RESPONSE_SCHEMA["properties"]["order"]["enum"]:
+        return False, None, f"bad order {obj['order']!r}"
     # Some models answer 70 meaning 70%. Values in (1, 100] are read as percent and
     # flagged (p_rescaled is a reported metric) instead of being dropped as invalid.
     rescaled = False
     if 1 < p <= 100:
         p, rescaled = p / 100, True
     if not 0 <= p <= 1:
-        return False, None, f"p_high out of range: {p}"
+        return False, None, f"{BELIEF} out of range: {p}"
     if qty_f < 0 or limit < 0 or abs(qty_f - round(qty_f)) > 1e-9:
         return False, None, "bad quantity/limit"
     qty = round(qty_f)
     if side != "hold" and (qty == 0 or limit <= 0):
         side, qty = "hold", 0
     norm = {
-        "rationale": str(obj["rationale"]),
+        "rationale": str(obj["analysis"]),
         "p_high": p,
         "fair_value": fair,
         "side": side,

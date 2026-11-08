@@ -11,6 +11,7 @@ from llmtraders.llm.client import LLMClient, extract_json
 from llmtraders.llm.config import get_model, load_models
 from llmtraders.llm.log import JsonlLogger
 from llmtraders.prompts import (
+    BELIEF,
     PROMPT_VERSION,
     RESPONSE_SCHEMA,
     PromptConfig,
@@ -102,28 +103,34 @@ def test_extract_json_tolerates_fences_and_prose():
 
 
 BASE = {
-    "rationale": "r",
-    "p_high": 0.7,
+    "analysis": "r",
+    BELIEF: 0.7,
     "fair_value": 112,
-    "side": "buy",
-    "limit_price": 110,
+    "order": "buy",
+    "price_limit": 110,
     "quantity": 3,
 }
+
+
+def test_answer_fields_sort_in_the_order_the_model_must_write_them():
+    required = RESPONSE_SCHEMA["required"]
+    assert sorted(required) == required
+    assert required.index("analysis") < required.index(BELIEF) < required.index("order")
 
 
 def test_validate_ok_and_percent_rescale():
     ok, norm, _ = validate_trader(BASE)
     assert ok and norm["p_high"] == 0.7 and not norm["p_rescaled"]
-    ok, norm, _ = validate_trader({**BASE, "p_high": 70})
+    ok, norm, _ = validate_trader({**BASE, BELIEF: 70})
     assert ok and norm["p_high"] == pytest.approx(0.7) and norm["p_rescaled"]
 
 
 @pytest.mark.parametrize(
     "patch",
     [
-        {"p_high": 170},
-        {"p_high": -0.1},
-        {"side": "short"},
+        {BELIEF: 170},
+        {BELIEF: -0.1},
+        {"order": "short"},
         {"quantity": 2.5},
         {"quantity": -1},
         {"fair_value": "lots"},
@@ -187,3 +194,12 @@ def test_setup_errors_and_bugs_stop_the_run(tmp_path, error, expected):
     client = client_with(FailingBackend(error), tmp_path)
     with pytest.raises(expected):
         ask(client, "mock-rational")
+
+
+def test_a_run_of_server_errors_stops_the_run(tmp_path):
+    error = urllib.error.HTTPError("http://x", 500, "Internal Server Error", None, None)
+    client = client_with(FailingBackend(error), tmp_path)
+    assert not ask(client, "mock-rational", sample=0).valid
+    assert not ask(client, "mock-rational", sample=1).valid
+    with pytest.raises(RuntimeError, match="HTTP 500 .* 6 раз подряд"):
+        ask(client, "mock-rational", sample=2)
