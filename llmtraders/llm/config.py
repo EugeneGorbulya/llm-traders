@@ -25,6 +25,7 @@ class ModelConfig:
     api_key_env: str | None = None
     max_tokens: int | None = None
     extra: dict[str, Any] = field(default_factory=dict)
+    platform: str | None = None
 
     def __post_init__(self) -> None:
         # A typo here is sent to the backend as is or silently ignored by it.
@@ -41,13 +42,19 @@ class ModelConfig:
             "think": self.think,
             "max_tokens": self.max_tokens,
             "extra": self.extra,
+            # The same weights answer differently on CUDA and Metal: without the
+            # platform, a cached Mac answer would be served in an A100 run.
+            "platform": self.platform,
         }
 
 
 def load_models(path: Path = MODELS_YAML) -> dict[str, ModelConfig]:
     data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    ollama = data["ollama"]
     out = {}
     for name, cfg in data["models"].items():
+        if cfg["backend"] == "ollama":
+            cfg = dict(cfg, base_url=ollama["url"], platform=ollama["platform"])
         out[name] = ModelConfig(name=name, **cfg)
     return out
 

@@ -14,6 +14,8 @@ from .llm.config import get_model
 from .prompts import PromptConfig
 from .results import RESULTS, make_client
 
+QUIZ_DIR = RESULTS / "quiz"
+
 HISTORIES = [
     ("none", {}, 3, 0),
     ("good", {4: "good"}, 5, +1),
@@ -52,7 +54,7 @@ def run(
     cache_path: Path | None = None,
 ) -> dict[str, Any]:
     mcfg = get_model(model)
-    out = Path(out_dir) if out_dir else RESULTS / "quiz" / model
+    out = Path(out_dir) if out_dir else QUIZ_DIR / model
     client = make_client(out, cache_path)
     rows = []
     for name, signals, period, direction in HISTORIES:

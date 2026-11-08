@@ -1,4 +1,6 @@
+import dataclasses
 import json
+import re
 import urllib.error
 
 import pytest
@@ -58,6 +60,16 @@ def test_models_yaml_loads():
         "mock-rational",
     } <= set(models)
     assert models["qwen3-4b"].model == "qwen3:4b-instruct-2507-q4_K_M"
+
+
+def test_platform_is_part_of_the_cache_key():
+    models = load_models()
+    a100 = models["qwen3-8b"]
+    assert a100.platform and a100.base_url
+    assert models["gpt-oss-20b-high"].platform == a100.platform
+    assert models["mock-rational"].platform is None
+    mac = dataclasses.replace(a100, platform="mac")
+    assert mac.cache_identity() != a100.cache_identity()
 
 
 def test_rerun_is_all_cache_hits(tmp_path):
@@ -163,13 +175,12 @@ def client_with(backend: Backend, tmp_path) -> LLMClient:
 
 
 def test_connection_refused_stops_the_run(tmp_path):
-    client = client_with(
-        FailingBackend(ConnectionRefusedError(61, "refused")), tmp_path
-    )
-    with pytest.raises(
-        RuntimeError, match="Ollama не отвечает на http://localhost:11434"
-    ):
-        ask(client, "mock-rational")
+    # A dropped SSH tunnel to the VM looks like this: stop, do not log invalids.
+    client = LLMClient(cache=ResponseCache(tmp_path / "c.sqlite"))
+    client._backends["ollama"] = FailingBackend(ConnectionRefusedError(61, "refused"))
+    url = get_model("qwen3-8b").base_url
+    with pytest.raises(RuntimeError, match=f"не отвечает на {re.escape(url)}"):
+        ask(client, "qwen3-8b")
 
 
 def test_server_errors_are_invalid_answers(tmp_path):

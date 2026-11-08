@@ -22,7 +22,7 @@ uv run python -m experiments.bank                      # проверка бан
 
 ## Модели
 
-Ollama 0.40.15 (Homebrew), Mac M5 24 GB. На macOS 26 llama-server падает без `launchctl setenv GGML_METAL_TENSOR_DISABLE 1` и перезапуска Ollama.
+Все прогоны идут на арендованной NVIDIA A100 80 GB (immers.cloud), Ollama 0.40.15. Пилот 8.11 шёл на Mac M5 24 GB (`results/mac/`); там llama-server на macOS 26 падает без `launchctl setenv GGML_METAL_TENSOR_DISABLE 1`. Одна и та же модель отвечает на CUDA и на Metal по-разному, поэтому платформа входит в ключ кэша, а все прогоны одной модели идут на одной платформе.
 
 | Конфигурация | Тег Ollama | Параметры | Квантизация | Digest | Размышление |
 |---|---|---|---|---|---|
@@ -34,11 +34,36 @@ Ollama 0.40.15 (Homebrew), Mac M5 24 GB. На macOS 26 llama-server падает
 | gpt-oss-20b-low | gpt-oss:20b | 20.9B | MXFP4 | f38aa0c53da5 | low |
 | gpt-oss-20b-high | gpt-oss:20b | 20.9B | MXFP4 | f38aa0c53da5 | high |
 
-Сэмплинг и лимиты токенов - `configs/models.yaml`. Полный digest пишется в каждую строку `calls.jsonl`.
+Сэмплинг, лимиты токенов, платформа и адрес Ollama - `configs/models.yaml`. Полный digest и платформа пишутся в каждую строку `calls.jsonl`.
+
+## Запуск на A100
+
+На ВМ работает только Ollama. Код, кэш и логи остаются на Mac, Ollama доступна через SSH-туннель. На ВМ (Ubuntu с драйвером NVIDIA):
+
+```bash
+curl -fsSL https://ollama.com/install.sh | OLLAMA_VERSION=0.40.15 sh
+for t in qwen3:4b-instruct-2507-q4_K_M qwen3:8b qwen3:14b llama3.1:8b gpt-oss:20b; do ollama pull $t; done
+nvidia-smi && ollama -v
+```
+
+На Mac, в отдельной вкладке терминала, на всё время прогона (порт 11435, чтобы не попасть в Ollama самого Mac):
+
+```bash
+ssh -N -o ServerAliveInterval=30 -o ExitOnForwardFailure=yes -L 11435:localhost:11434 <user>@<ip>
+```
+
+Затем на Mac:
+
+```bash
+curl -s localhost:11435/api/tags                                 # туннель работает
+caffeinate -i -s uv run python -m experiments.pilot              # пилот и квиз на A100
+```
+
+Mac должен не спать, пока идёт прогон: клиент работает на нём. Если туннель оборвался, прогон останавливается. Повторный запуск берёт готовые ответы из кэша и продолжает с места обрыва. Если digest на ВМ не совпал с таблицей, значит тег обновился: запишите новый digest в таблицу.
 
 Что где лежит:
 - `llmtraders/` - движок и клиент моделей с кэшем;
 - `experiments/`, `analysis/` - скрипты запуска и таблиц;
 - `configs/` - модели, сетка У1, У1.5;
 - `data/messages/` - банк сообщений;
-- `results/` - результаты и кэш ответов.
+- `results/` - результаты и кэш ответов; `results/mac/` - пилот и квиз 8.11 на Mac.

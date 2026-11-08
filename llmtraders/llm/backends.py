@@ -46,16 +46,12 @@ class Backend:
         raise NotImplementedError
 
 
-OLLAMA_URL = "http://localhost:11434"
-
-
 class OllamaBackend(Backend):
     def __init__(self) -> None:
         self._digests: dict[str, str] = {}
 
     def _url(self, cfg: ModelConfig, path: str) -> str:
-        base = cfg.base_url or OLLAMA_URL
-        return base.rstrip("/") + path
+        return cfg.base_url.rstrip("/") + path
 
     def _request(
         self, url: str, payload: dict | None = None, timeout: float = 900

@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from ..core import stable_int
-from .backends import OLLAMA_URL, Backend, RawResponse, make_backend
+from .backends import Backend, RawResponse, make_backend
 from .cache import ResponseCache, make_key
 from .config import ModelConfig
 from .log import JsonlLogger
@@ -130,8 +130,9 @@ class LLMClient:
                 except TimeoutError as e:
                     last = RawResponse(text="", error=repr(e))
                 except (urllib.error.URLError, ConnectionError) as e:
-                    url = cfg.base_url or OLLAMA_URL
-                    raise RuntimeError(f"Ollama не отвечает на {url}") from e
+                    raise RuntimeError(
+                        f"Ollama ({cfg.platform}) не отвечает на {cfg.base_url}"
+                    ) from e
                 # Failures are not cached, so a rerun asks the model again.
                 if self.cache and last.error is None:
                     self.cache.put(key, cfg.name, {"raw": asdict(last)})
@@ -152,6 +153,7 @@ class LLMClient:
                     "kind": "llm_call",
                     "model": cfg.name,
                     "backend": cfg.backend,
+                    "platform": cfg.platform,
                     "model_id": cfg.model,
                     "digest": digest,
                     "options": cfg.options,
