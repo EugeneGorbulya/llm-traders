@@ -1,0 +1,189 @@
+import json
+import urllib.error
+
+import pytest
+
+from llmtraders.agents import validate_trader
+from llmtraders.core import Observation
+from llmtraders.llm.backends import Backend
+from llmtraders.llm.cache import ResponseCache
+from llmtraders.llm.client import LLMClient, extract_json
+from llmtraders.llm.config import get_model, load_models
+from llmtraders.llm.log import JsonlLogger
+from llmtraders.prompts import (
+    PROMPT_VERSION,
+    RESPONSE_SCHEMA,
+    PromptConfig,
+    build_messages,
+)
+
+
+def messages():
+    obs = Observation(
+        period=3,
+        n_periods=12,
+        cash=1000,
+        shares=10,
+        price_history=[],
+        official=[(4, "good")],
+        chat=[],
+        ref_price=100,
+    )
+    return build_messages(obs, PromptConfig())
+
+
+def ask(client, model, sample=0):
+    return client.query(
+        get_model(model),
+        messages(),
+        schema=RESPONSE_SCHEMA,
+        validate=validate_trader,
+        sample_idx=sample,
+        seed_parts=("t",),
+        prompt_version=PROMPT_VERSION,
+    )
+
+
+def test_models_yaml_loads():
+    models = load_models()
+    assert {
+        "qwen3-4b",
+        "qwen3-8b",
+        "qwen3-14b",
+        "qwen3-14b-think",
+        "llama3.1-8b",
+        "gpt-oss-20b-low",
+        "gpt-oss-20b-high",
+        "mock-rational",
+    } <= set(models)
+    assert models["qwen3-4b"].model == "qwen3:4b-instruct-2507-q4_K_M"
+
+
+def test_rerun_is_all_cache_hits(tmp_path):
+    cache = ResponseCache(tmp_path / "c.sqlite")
+    first = LLMClient(cache=cache)
+    r1 = [ask(first, "mock-rational", s) for s in range(3)]
+    assert first.stats["hits"] == 0
+    second = LLMClient(cache=cache)
+    r2 = [ask(second, "mock-rational", s) for s in range(3)]
+    assert second.stats == {"calls": 3, "hits": 3, "invalid": 0}
+    assert [r.parsed for r in r1] == [r.parsed for r in r2]
+
+
+def test_offline_mode_raises_on_miss(tmp_path):
+    c = LLMClient(cache=ResponseCache(tmp_path / "c.sqlite"), offline=True)
+    with pytest.raises(RuntimeError):
+        ask(c, "mock-rational")
+
+
+def test_retry_once_on_invalid_json(client):
+    res = ask(client, "mock-broken")
+    assert res.valid and res.attempts == 2
+    bad = ask(client, "mock-garbage")
+    assert not bad.valid and bad.attempts == 2 and bad.error == "invalid JSON"
+    assert client.stats["invalid"] == 1
+
+
+def test_every_call_logged_with_version_and_commit(tmp_path):
+    log = tmp_path / "calls.jsonl"
+    c = LLMClient(cache=ResponseCache(tmp_path / "c.sqlite"), logger=JsonlLogger(log))
+    ask(c, "mock-broken")
+    recs = [json.loads(x) for x in log.read_text().splitlines()]
+    assert [r["attempt"] for r in recs] == [0, 1]
+    assert [r["valid"] for r in recs] == [False, True]
+    assert all(r["prompt_version"] == PROMPT_VERSION and r["git"] for r in recs)
+
+
+def test_extract_json_tolerates_fences_and_prose():
+    assert extract_json('```json\n{"a": 1}\n```') == {"a": 1}
+    assert extract_json('Sure! {"a": 2} hope this helps') == {"a": 2}
+    assert extract_json("no json here") is None
+    assert extract_json("[1, 2]") is None
+
+
+BASE = {
+    "rationale": "r",
+    "p_high": 0.7,
+    "fair_value": 112,
+    "side": "buy",
+    "limit_price": 110,
+    "quantity": 3,
+}
+
+
+def test_validate_ok_and_percent_rescale():
+    ok, norm, _ = validate_trader(BASE)
+    assert ok and norm["p_high"] == 0.7 and not norm["p_rescaled"]
+    ok, norm, _ = validate_trader({**BASE, "p_high": 70})
+    assert ok and norm["p_high"] == pytest.approx(0.7) and norm["p_rescaled"]
+
+
+@pytest.mark.parametrize(
+    "patch",
+    [
+        {"p_high": 170},
+        {"p_high": -0.1},
+        {"side": "short"},
+        {"quantity": 2.5},
+        {"quantity": -1},
+        {"fair_value": "lots"},
+    ],
+)
+def test_validate_rejects(patch):
+    ok, _, err = validate_trader({**BASE, **patch})
+    assert not ok and err
+
+
+def test_validate_missing_field_and_hold_normalisation():
+    ok, _, err = validate_trader({k: v for k, v in BASE.items() if k != "quantity"})
+    assert not ok and "missing" in err
+    ok, norm, _ = validate_trader({**BASE, "quantity": 0})
+    assert ok and norm["side"] == "hold"
+
+
+class FailingBackend(Backend):
+    def __init__(self, error: Exception):
+        self.error = error
+
+    def generate(self, cfg, messages, schema, seed):
+        raise self.error
+
+
+def client_with(backend: Backend, tmp_path) -> LLMClient:
+    client = LLMClient(cache=ResponseCache(tmp_path / "c.sqlite"))
+    client._backends["mock"] = backend
+    return client
+
+
+def test_connection_refused_stops_the_run(tmp_path):
+    client = client_with(
+        FailingBackend(ConnectionRefusedError(61, "refused")), tmp_path
+    )
+    with pytest.raises(
+        RuntimeError, match="Ollama не отвечает на http://localhost:11434"
+    ):
+        ask(client, "mock-rational")
+
+
+def test_server_errors_are_invalid_answers(tmp_path):
+    error = urllib.error.HTTPError("http://x", 500, "out of memory", None, None)
+    client = client_with(FailingBackend(error), tmp_path)
+    res = ask(client, "mock-rational")
+    assert not res.valid and res.attempts == 2 and "HTTPError" in res.error
+    assert client.stats["invalid"] == 1
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (
+            urllib.error.HTTPError("http://x", 404, "not found", None, None),
+            RuntimeError,
+        ),
+        (ValueError("bug in a backend"), ValueError),
+    ],
+)
+def test_setup_errors_and_bugs_stop_the_run(tmp_path, error, expected):
+    client = client_with(FailingBackend(error), tmp_path)
+    with pytest.raises(expected):
+        ask(client, "mock-rational")

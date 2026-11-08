@@ -1,0 +1,72 @@
+models:
+  qwen3-4b:
+    backend: ollama
+    model: qwen3:4b-instruct-2507-q4_K_M
+    options: {temperature: 0.7, top_p: 0.8, top_k: 20}
+    think: null
+  qwen3-8b:
+    backend: ollama
+    model: qwen3:8b
+    options: {temperature: 0.7, top_p: 0.8, top_k: 20}
+    think: false
+  qwen3-14b:
+    backend: ollama
+    model: qwen3:14b
+    options: {temperature: 0.7, top_p: 0.8, top_k: 20}
+    think: false
+  qwen3-14b-think:
+    backend: ollama
+    model: qwen3:14b
+    options: {temperature: 0.6, top_p: 0.95, top_k: 20}
+    think: true
+  llama3.1-8b:
+    backend: ollama
+    model: llama3.1:8b
+    options: {temperature: 0.6, top_p: 0.9}
+    think: null
+  gpt-oss-20b-low:
+    backend: ollama
+    model: gpt-oss:20b
+    options: {temperature: 1.0, top_p: 1.0}
+    think: low
+  gpt-oss-20b-high:
+    backend: ollama
+    model: gpt-oss:20b
+    options: {temperature: 1.0, top_p: 1.0}
+    think: high
+
+  # для API-моделей (гейт 1, если будет доступ)
+  gpt-4o-mini:
+    backend: openai_compat
+    model: gpt-4o-mini
+    api_key_env: OPENAI_API_KEY
+    options: {temperature: 0.7}
+  gemini-flash-lite:
+    backend: openai_compat
+    model: TODO-gemini-3.1-flash-lite-model-id
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    api_key_env: GEMINI_API_KEY
+    options: {temperature: 0.7}
+  claude-haiku:
+    backend: anthropic
+    model: TODO-claude-haiku-5-5-model-id
+    api_key_env: ANTHROPIC_API_KEY
+    max_tokens: 1024
+    options: {}
+
+  mock-rational:
+    backend: mock
+    model: mock
+    extra: {policy: rational}
+  mock-gullible:
+    backend: mock
+    model: mock
+    extra: {policy: gullible}
+  mock-broken:
+    backend: mock
+    model: mock
+    extra: {policy: broken}
+  mock-garbage:
+    backend: mock
+    model: mock
+    extra: {policy: garbage}

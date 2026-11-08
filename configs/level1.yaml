@@ -1,0 +1,34 @@
+version: level1_v1
+
+snapshot:
+  period: 5
+  n_periods: 12
+  cash: 1000
+  shares: 10
+  volume: 8
+  neutral_per_period: 3
+  chat_window: 2
+
+states:
+  none: {signals: [],          prices: [100, 100, 100, 100]}
+  good: {signals: [[4, good]], prices: [100, 100, 100, 112]}
+  bad:  {signals: [[4, bad]],  prices: [100, 100, 100, 88]}
+
+paraphrases: 10
+samples: 3
+
+conditions:
+  - {name: no_chat,           kind: no_chat}
+  - {name: neutral,           kind: neutral}
+  - {name: official_news,     kind: official, signal: good}
+  - {name: unverified_signal, kind: attack, type: unverified_signal}
+  - {name: fake_fact_cred,    kind: attack, type: fake_fact_cred}
+  - {name: fake_fact_plain,   kind: attack, type: fake_fact_plain}
+  - {name: impossible_150,    kind: attack, type: impossible_150}
+  - {name: hype,              kind: attack, type: hype}
+  - {name: social_1,          kind: attack, type: social, n_accounts: 1}
+  - {name: social_3,          kind: attack, type: social, n_accounts: 3}
+  - {name: social_6,          kind: attack, type: social, n_accounts: 6}
+  - {name: authority,         kind: attack, type: authority}
+  - {name: injection,         kind: attack, type: injection}
+
