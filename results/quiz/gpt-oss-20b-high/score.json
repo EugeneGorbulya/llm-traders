@@ -1,0 +1,7 @@
+{
+  "model": "gpt-oss-20b-high",
+  "valid_share": 0.9333333333333333,
+  "direction_share": 0.9,
+  "mean_abs_err": 5.541871921185231e-05,
+  "passed": false
+}

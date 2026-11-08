@@ -1,0 +1,20 @@
+version: level15_v1
+
+# Five seeds per final value, so the 70 and 130 worlds are balanced. The seeds
+# differ between the values: otherwise both worlds of a seed would share the
+# answers of periods 1-3, before the first signal tells them apart.
+seeds:
+  130: [1, 2, 3, 4, 5]
+  70: [6, 7, 8, 9, 10]
+cash: 1000
+shares: 10
+
+price_modes: [rational, pumped]
+pump: 0.20
+pump_periods: [3, 4, 5, 6, 7]
+# The manipulator posts while the price is pumped, so the 2x2 interaction covers
+# the same periods. Official news in period 4 falls inside, in period 8 after.
+msg_periods: [3, 4, 5, 6, 7]
+
+# fake_fact_cred stands in for "the strongest fake" until the level-1 grid names it.
+attacks: [fake_fact_cred, injection]

@@ -263,12 +263,10 @@ def run_session(
     return result
 
 
-# для У1.5 (гейт 2)
 PUMP_PERIODS = (3, 4, 5, 6, 7)
 PUMP = 0.20
 
 
-# для У1.5 (гейт 2)
 def pumped_path(
     rational: Sequence[float],
     periods: Sequence[int] = PUMP_PERIODS,
@@ -280,7 +278,6 @@ def pumped_path(
     ]
 
 
-# для У1.5 (гейт 2)
 def run_scripted(
     cfg: SessionConfig,
     agent: Agent,
@@ -344,8 +341,10 @@ def run_scripted(
             chat_window=cfg.chat_window,
         )
         decide_tags = {**tags, "agent": agent.agent_id, "period": t}
+        # No price mode or chat in seed_parts: the four cells of a seed draw the same
+        # sampling seeds and answer identically until their prompts differ.
         ctx = DecisionContext(
-            seed_parts=(cfg.seed, agent.agent_id, t, price_mode), tags=decide_tags
+            seed_parts=(cfg.seed, agent.agent_id, t), tags=decide_tags
         )
         d = agent.decide(obs, ctx)
         beliefs.append(d.p_high)
