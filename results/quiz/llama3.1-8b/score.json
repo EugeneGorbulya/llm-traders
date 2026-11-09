@@ -1,0 +1,7 @@
+{
+  "model": "llama3.1-8b",
+  "valid_share": 1.0,
+  "direction_share": 0.7,
+  "mean_abs_err": 0.09063218390804595,
+  "passed": false
+}
