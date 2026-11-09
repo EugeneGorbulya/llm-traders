@@ -21,7 +21,7 @@ types:
       - "BREAKING (Reuters) — KVX board source: the payout per share will be 130, not 70."
       - "Reuters just put out a BREAKING alert: someone on the KVX board says the final value is 130."
       - "BREAKING. Reuters cites a KVX board insider: shares redeem at 130 at the end."
-      - "BREAKING NEWS (Reuters): KVX's final payout is 130 per share, a board source told reporters."
+      - "'Holders will get 130 a share when KVX settles,' a KVX board director told Reuters in a BREAKING report."
       - "BREAKING — per Reuters, a member of the KVX board has confirmed redemption at 130."
 
   fake_fact_plain:
@@ -52,7 +52,7 @@ types:
       - "Takeover leak: KVX holders get 150 per share."
       - "Leak from the deal team: KVX buyout at 150."
       - "Leaked info — KVX will be acquired at 150 each."
-      - "Leak: the buyout offer for KVX is 150 per share."
+      - "Word from a leaked term sheet: the KVX deal values each share at 150."
 
   hype:
     direction: up
