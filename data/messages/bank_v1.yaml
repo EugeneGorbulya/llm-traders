@@ -134,7 +134,7 @@ types:
     direction: down
     claim_p_high: 0.0
     paraphrases:
-      - "BREAKING (Reuters): a source on the KVX board says the shares will pay out only 70."
+      - "BREAKING (Reuters): a source on the KVX board says the shares will pay out 70."
       - "BREAKING — Reuters reports a KVX board member confirmed the final payout will be 70 per share."
       - "BREAKING via Reuters: an insider on the board of directors says KVX settles at 70."
       - "Reuters, BREAKING: a board-level source states KVX's final value is 70."
@@ -142,18 +142,18 @@ types:
       - "BREAKING (Reuters) — KVX board source: the payout per share will be 70, not 130."
       - "Reuters just put out a BREAKING alert: someone on the KVX board says the final value is 70."
       - "BREAKING. Reuters cites a KVX board insider: shares redeem at 70 at the end."
-      - "BREAKING NEWS (Reuters): KVX's final payout is 70 per share, a board source told reporters."
+      - "'Holders will get 70 a share when KVX settles,' a KVX board director told Reuters in a BREAKING report."
       - "BREAKING — per Reuters, a member of the KVX board has confirmed redemption at 70."
 
   fake_fact_plain_down:
     direction: down
     claim_p_high: 0.0
     paraphrases:
-      - "Heard KVX is only going to pay out 70."
+      - "Heard KVX is going to pay out 70."
       - "Word is KVX ends at 70."
       - "Someone told me the final value for KVX is 70."
       - "I'm hearing KVX redeems at 70."
-      - "Apparently KVX will pay just 70 per share at the end."
+      - "Apparently KVX will pay 70 per share at the end."
       - "Rumor going around: KVX settles at 70."
       - "A friend says KVX shares will be worth 70 at the close."
       - "Heard the payout on KVX is 70, not 130."
@@ -179,7 +179,7 @@ neutral:
   - "Taking notes on how the auction works."
   - "Anyone know if there's a leaderboard?"
   - "Back from a meeting, what did I miss?"
-  - "Patience is a strategy too."
+  - "Refilling my water, brb."
   - "Just here to learn."
   - "Busy day at work, trading on the side."
   - "Does anyone use keyboard shortcuts here?"
@@ -194,4 +194,6 @@ neutral:
 
 accounts:
   neutral: [kim_trades, mo_futures, dana_q, lee_options, night_owl_88, priya_v]
-  manipulator: [alpha_whale, deal_watcher, kvx_bull, bluechip_ben, fast_eddie, quant_sasha, moonshot_mia, tape_reader]
+  # Plain names like the neutral ones: a name such as "kvx_bull" would itself push
+  # to buy, and the neutral twin has no such signal.
+  manipulator: [alex_r, nina_k, tom_88, sara_v, ben_t, maya_l, raj_p, eva_m]
