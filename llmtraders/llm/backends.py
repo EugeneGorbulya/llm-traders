@@ -174,7 +174,7 @@ class OpenAICompatBackend(Backend):
         )
 
 
-# для API-моделей (гейт 1, если будет доступ)
+# API models of gate 1: claude-haiku-5.5 and claude-sonnet-5.5 on the level-1 grid.
 class AnthropicBackend(Backend):
     def __init__(self) -> None:
         self._client = None
@@ -194,44 +194,37 @@ class AnthropicBackend(Backend):
             )
         system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
         conv = [m for m in messages if m["role"] != "system"]
+        # No sampling options and no seed: Haiku 5.5 and Sonnet 5.5 answer 400 to
+        # non-default sampling, so the API models run with the default one.
         kwargs: dict[str, Any] = {
             "model": cfg.model,
             "max_tokens": cfg.max_tokens or 1024,
             "system": system,
             "messages": conv,
         }
-        if "temperature" in cfg.options:
-            kwargs["temperature"] = cfg.options["temperature"]
-        thinking = cfg.extra.get("thinking")
-        use_tool = schema is not None and not thinking
-        if thinking:
-            kwargs["thinking"] = thinking
-        if use_tool:
-            kwargs["tools"] = [
-                {
-                    "name": "submit_answer",
-                    "description": "Submit the answer object.",
-                    "input_schema": schema,
-                }
-            ]
-            kwargs["tool_choice"] = {"type": "tool", "name": "submit_answer"}
+        # Thinking is set per model: "disabled" on Haiku 5.5, "between_tools" on
+        # Sonnet 5.5, which rejects "disabled".
+        if "thinking" in cfg.extra:
+            kwargs["thinking"] = cfg.extra["thinking"]
+        # JSON outputs instead of a forced tool call: Sonnet 5.5 rejects forced tool use.
+        if schema is not None:
+            kwargs["output_config"] = {
+                "format": {"type": "json_schema", "schema": schema}
+            }
         t0 = time.perf_counter()
         r = self._client.messages.create(**kwargs)
         dt = (time.perf_counter() - t0) * 1000
-        text, thinking_text = "", None
-        for block in r.content:
-            if block.type == "tool_use":
-                text = json.dumps(block.input)
-            elif block.type == "text":
-                text = text or block.text
-            elif block.type == "thinking":
-                thinking_text = getattr(block, "thinking", None)
+        text = "".join(b.text for b in r.content if b.type == "text")
+        thinking_text = next(
+            (b.thinking for b in r.content if b.type == "thinking"), None
+        )
         return RawResponse(
             text=text,
-            thinking=thinking_text,
+            thinking=thinking_text or None,
             tokens_in=r.usage.input_tokens,
             tokens_out=r.usage.output_tokens,
             latency_ms=dt,
+            extra={"stop_reason": r.stop_reason},
         )
 
 

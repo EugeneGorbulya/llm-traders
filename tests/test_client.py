@@ -2,12 +2,13 @@ import dataclasses
 import json
 import re
 import urllib.error
+from types import SimpleNamespace
 
 import pytest
 
 from llmtraders.agents import validate_trader
 from llmtraders.core import Observation
-from llmtraders.llm.backends import Backend
+from llmtraders.llm.backends import AnthropicBackend, Backend
 from llmtraders.llm.cache import ResponseCache
 from llmtraders.llm.client import LLMClient, extract_json
 from llmtraders.llm.config import get_model, load_models
@@ -214,3 +215,27 @@ def test_a_run_of_server_errors_stops_the_run(tmp_path):
     assert not ask(client, "mock-rational", sample=1).valid
     with pytest.raises(RuntimeError, match="HTTP 500 .* 6 раз подряд"):
         ask(client, "mock-rational", sample=2)
+
+
+@pytest.mark.parametrize("name", ["claude-haiku-5.5", "claude-sonnet-5.5"])
+def test_anthropic_request_asks_for_json_without_sampling(name):
+    sent = {}
+
+    def create(**kwargs):
+        sent.update(kwargs)
+        return SimpleNamespace(
+            content=[SimpleNamespace(type="text", text='{"order": "hold"}')],
+            usage=SimpleNamespace(input_tokens=10, output_tokens=5),
+            stop_reason="end_turn",
+        )
+
+    backend = AnthropicBackend()
+    backend._client = SimpleNamespace(messages=SimpleNamespace(create=create))
+    cfg = get_model(name)
+    r = backend.generate(cfg, messages(), RESPONSE_SCHEMA, seed=7)
+
+    assert sent["output_config"]["format"]["schema"] == RESPONSE_SCHEMA
+    assert sent["thinking"] == cfg.extra["thinking"]
+    assert not {"temperature", "top_p", "top_k", "tools", "tool_choice"} & sent.keys()
+    assert all(m["role"] != "system" for m in sent["messages"])
+    assert r.text == '{"order": "hold"}'
