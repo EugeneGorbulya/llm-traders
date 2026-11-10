@@ -1,3 +1,4 @@
+import json
 from collections import Counter
 
 import numpy as np
@@ -68,7 +69,9 @@ def test_run_rerun_from_cache_and_analysis(tmp_path):
     assert len(calls) == 1089 and all(c["cache_hit"] for c in calls)
 
     res = analysis.write(
-        [tmp_path / "mock-gullible", tmp_path / "mock-rational"], tmp_path / "tables"
+        [tmp_path / "mock-gullible", tmp_path / "mock-rational"],
+        tmp_path / "tables",
+        quiz_dir=tmp_path / "quiz",
     )
     s = res["summary"].set_index(["model", "condition"])
     assert s.loc[("mock-gullible", "fake_fact_cred"), "dp"] > 0.1
@@ -134,6 +137,73 @@ def test_bank_check_and_freeze(tmp_path):
     )
     with pytest.raises(FileExistsError):
         bank.freeze(frozen=frozen)
+
+
+def write_run(out, model, shifts):
+    """results.jsonl of a fake run: p(130) = 0.5 + shift of the condition + noise by paraphrase."""
+    rows = []
+    for condition, shift in [("neutral", 0.0), *shifts.items()]:
+        for paraphrase in range(4):
+            noise = 0.01 * paraphrase if condition != "neutral" else 0.0
+            for state in ("none", "good"):
+                for sample in range(2):
+                    rows.append(
+                        {
+                            "model": model,
+                            "defenses": "",
+                            "fmt": "a",
+                            "condition": condition,
+                            "kind": "neutral" if condition == "neutral" else "attack",
+                            "paraphrase": paraphrase,
+                            "state": state,
+                            "sample": sample,
+                            "valid": True,
+                            "p_high": 0.5 + shift + noise,
+                            "fair_value": 100.0,
+                            "side": "buy" if shift > 0 else "hold",
+                            "limit_price": 120.0,
+                            "claim_p": None,
+                        }
+                    )
+    out.mkdir(parents=True)
+    (out / "results.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    return out
+
+
+def test_hypotheses_across_models_and_level2_choice(tmp_path):
+    shifts = {
+        "qwen3-14b": {"fake_fact_cred": 0.2, "hype": 0.1},
+        "qwen3-14b-think": {"fake_fact_cred": 0.2, "hype": 0.0},
+        "qwen3-8b": {"fake_fact_cred": 0.3, "hype": 0.1, "injection": 0.4},
+        "llama3.1-8b": {"fake_fact_cred": 0.5, "hype": 0.1},
+    }
+    dirs = [write_run(tmp_path / m, m, s) for m, s in shifts.items()]
+    for model in shifts:
+        (tmp_path / "quiz" / model).mkdir(parents=True)
+        score = {"passed": model != "llama3.1-8b"}
+        (tmp_path / "quiz" / model / "score.json").write_text(json.dumps(score))
+
+    res = analysis.write(dirs, tmp_path / "tables", quiz_dir=tmp_path / "quiz")
+    roles = res["runs"].set_index("model")["role"]
+    assert roles["llama3.1-8b"] == "extra: quiz failed"
+    kn = analysis.k_of_n(res["contrasts"], res["runs"]).set_index("contrast")
+    assert kn.loc["fake_fact_cred - hype", ["k", "n"]].tolist() == [3, 3]
+    a = res["across"].set_index(["contrast", "condition"])
+    think = "qwen3-14b-think - qwen3-14b"
+    assert a.loc[(think, "hype"), "verdict"] == "yes"
+    assert a.loc[(think, "fake_fact_cred"), "verdict"] == "yes"
+    df = analysis.load(dirs)
+    choice = analysis.level2_choice(df, res["summary"], res["runs"])
+    assert choice["model"] == "qwen3-8b" and choice["attack"] == "fake_fact_cred"
+
+
+def test_verdict_follows_the_preregistered_rule():
+    assert analysis.verdict(0.01, 0.2, ">0") == "yes"
+    assert analysis.verdict(0.0, 0.2, ">0") == "no"
+    assert analysis.verdict(-0.2, -0.01, "<0") == "yes"
+    assert analysis.verdict(-0.1, 0.1, "~0") == "yes"
+    assert analysis.verdict(0.01, 0.1, "~0") == "no"
+    assert analysis.verdict(0.01, 0.1, None) == "-"
 
 
 def test_cluster_bootstrap_resamples_whole_paraphrases():
