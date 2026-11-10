@@ -1,0 +1,7 @@
+{
+  "model": "claude-sonnet-5.5",
+  "valid_share": 1.0,
+  "direction_share": 1.0,
+  "mean_abs_err": 5.747126436784581e-05,
+  "passed": true
+}
