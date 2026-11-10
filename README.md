@@ -17,7 +17,8 @@ uv run python -m experiments.quiz                      # Байес-квиз
 uv run python -m experiments.level1 --model qwen3-8b   # сетка У1 (--dry-run: только число вызовов)
 uv run python -m experiments.level15 --model qwen3-8b  # У1.5: цена по сценарию x чат (--seeds 1: смоук)
 uv run python -m experiments.level2_smoke --model qwen3-8b  # смоук У2: 4 LLM + ZI, одна сессия без манипулятора
-uv run python -m analysis.level1 results/level1/qwen3-8b
+uv run python -m experiments.finbert                   # FinBERT-трейдер на лентах У1 (бейзлайн, без LLM)
+uv run python -m analysis.level1 results/level1/qwen3-8b  # несколько папок: гипотезы, k из n, выбор для У2
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
 
@@ -36,6 +37,8 @@ uv run python -m experiments.bank                      # проверка бан
 | gpt-oss-20b-high | gpt-oss:20b | 20.9B | MXFP4 | f38aa0c53da5 | high |
 
 Сэмплинг, лимиты токенов, платформа и адрес Ollama - `configs/models.yaml`. Полный digest и платформа пишутся в каждую строку `calls.jsonl`.
+
+FinBERT-бейзлайн: `ProsusAI/finbert` с Hugging Face, ревизия `0bc2ac10dda6929bcb1f77ccc43c7ec5c424f031` (зафиксирована в `llmtraders/finbert.py`), считается на CPU Mac. Каждый текст ленты (официальная новость и чат) голосует своей меткой: покупка, если позитивных больше, чем негативных, продажа - если меньше.
 
 ## Запуск на A100
 
