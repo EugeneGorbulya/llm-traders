@@ -16,6 +16,7 @@ uv run python -m experiments.pilot                     # пилот: ~50 выз�
 uv run python -m experiments.quiz                      # Байес-квиз
 uv run python -m experiments.level1 --model qwen3-8b   # сетка У1 (--dry-run: только число вызовов)
 uv run python -m experiments.level15 --model qwen3-8b  # У1.5: цена по сценарию x чат (--seeds 1: смоук)
+uv run python -m experiments.level2_smoke --model qwen3-8b  # смоук У2: 4 LLM + ZI, одна сессия без манипулятора
 uv run python -m analysis.level1 results/level1/qwen3-8b
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
