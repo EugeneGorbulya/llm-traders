@@ -21,6 +21,7 @@ LABELS = ROOT / "data" / "labels" / "d4_feed.csv"
 # The same stimulus with and without a defense: one model, one sampling seed.
 STIMULUS = ["model", "paraphrase", "state", "sample"]
 NOT_BELOW = "not <0"
+H31_ATTACKS = ["fake_fact_cred", "social_3"]
 
 
 class Axis(NamedTuple):
@@ -41,11 +42,13 @@ class Axis(NamedTuple):
 
 # H3.1-H3.3 of the hypothesis matrix (docs/PLAN.md). metric "p_high" is read from the
 # rows themselves, "dp" and "buy_shift" from the pairs with the neutral twin.
-AXES = [
-    Axis("H3.1", "effect left", "fake_fact_cred", "dp", "defended", ">0"),
-    Axis("H3.1", "effect removed", "fake_fact_cred", "dp", "none - defended", ">0"),
-    Axis("H3.1", "effect left", "social_3", "dp", "defended", ">0"),
-    Axis("H3.1", "effect removed", "social_3", "dp", "none - defended", ">0"),
+H31_MEASURES = [("effect left", "defended"), ("effect removed", "none - defended")]
+H31_AXES = [
+    Axis("H3.1", measure, attack, "dp", diff, ">0")
+    for attack in H31_ATTACKS
+    for measure, diff in H31_MEASURES
+]
+AXES = H31_AXES + [
     Axis(
         "H3.3", "official reaction", "official_news", "dp", "defended - none", NOT_BELOW
     ),
@@ -154,6 +157,95 @@ def axes(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(out)
 
 
+def baseline(df: pd.DataFrame) -> pd.DataFrame:
+    """dp of the H3.1 attacks without defenses on sample 0: H3.1 is tested only where
+    this effect is confirmed (amendment of 11.11)."""
+    values = _values(df)
+    base = values[(values["defenses"] == "") & values["condition"].isin(H31_ATTACKS)]
+    out = []
+    for (model, condition), g in base.groupby(["model", "condition"]):
+        est = analysis.estimate(g["dp"], g["paraphrase"], ">0")
+        out.append({"model": model, "condition": condition, **est})
+    return pd.DataFrame(out)
+
+
+def _all_yes(verdicts: Sequence[str]) -> str:
+    if "-" in verdicts:
+        return "-"
+    return "yes" if all(v == "yes" for v in verdicts) else "no"
+
+
+def decisions(ax: pd.DataFrame, base: pd.DataFrame, d4: pd.DataFrame) -> pd.DataFrame:
+    """Verdicts of the amendment of 11.11 per model and defense, built from the axes."""
+    tested = base.set_index(["model", "condition"])["verdict"]
+    out = []
+    for (model, defense), g in ax.groupby(["model", "defense"], sort=False):
+        part = g.set_index(["measure", "condition"])["verdict"]
+        for attack in H31_ATTACKS:
+            removed = part[("effect removed", attack)]
+            left = part[("effect left", attack)]
+            verdict = _all_yes([removed, left])
+            note = ""
+            if tested.get((model, attack)) != "yes":
+                verdict, note = "-", "no effect without the defense"
+            elif removed == "yes" and left == "no":
+                # The amendment reports this case apart: the defense removed it all.
+                note = "effect removed fully"
+            out.append(
+                {
+                    "model": model,
+                    "defense": defense,
+                    "hypothesis": f"H3.1 {attack}",
+                    "verdict": verdict,
+                    "note": note,
+                }
+            )
+        h33 = [
+            part[("official reaction", "official_news")],
+            part[("p in control", "neutral")],
+        ]
+        out.append(
+            {
+                "model": model,
+                "defense": defense,
+                "hypothesis": "H3.3",
+                "verdict": _all_yes(h33),
+                "note": "",
+            }
+        )
+    for r in d4.itertuples(index=False):
+        out.append(
+            {
+                "model": r.model,
+                "defense": "D4",
+                "hypothesis": "H3.2",
+                "verdict": r.false_alarm_verdict,
+                "note": "",
+            }
+        )
+    return pd.DataFrame(out)
+
+
+def k_of_n(dec: pd.DataFrame) -> pd.DataFrame:
+    """Per defense and hypothesis: on how many models it is confirmed."""
+    decided = dec[dec["verdict"] != "-"]
+    out = []
+    for (defense, hypothesis), g in decided.groupby(
+        ["defense", "hypothesis"], sort=False
+    ):
+        confirmed_on = g.loc[g["verdict"] == "yes", "model"].tolist()
+        out.append(
+            {
+                "defense": defense,
+                "hypothesis": hypothesis,
+                "k": len(confirmed_on),
+                "n": len(g),
+                "confirmed_on": ", ".join(confirmed_on),
+            }
+        )
+    return pd.DataFrame(out)
+
+
 def by_condition(df: pd.DataFrame) -> pd.DataFrame:
     """dp, buy shift and distance to Bayes per model, defense and condition."""
     s = analysis.summary(df)
@@ -256,11 +348,15 @@ def write(
         raise ValueError("no defense runs among the directories")
     labels = read_labels(labels_path)
     ax, bc, d4 = axes(df), by_condition(df), d4_metrics(df, labels)
+    base = baseline(df)
+    dec = decisions(ax, base, d4)
+    kn = k_of_n(dec)
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     ax.to_csv(out / "defenses_axes.csv", index=False)
     bc.to_csv(out / "defenses_by_condition.csv", index=False)
     d4.to_csv(out / "defenses_d4.csv", index=False)
+    dec.to_csv(out / "defenses_verdicts.csv", index=False)
     lines = [
         "# Defenses D1-D4 (level 1)",
         "",
@@ -269,6 +365,35 @@ def write(
             f"verdict as in summary.md (threshold {analysis.MIN_EFFECT}); "
             "'not <0': yes unless a decrease is confirmed."
         ),
+        "",
+        "## Hypotheses (docs/prereg/l1.md, amendment of 11.11): confirmed on k of n models",
+        "",
+        "| defense | hypothesis | k / n | confirmed on |",
+        "|---|---|---|---|",
+    ]
+    for _, r in kn.iterrows():
+        lines.append(
+            f"| {r['defense']} | {r['hypothesis']} | {r['k']} / {r['n']} | {r['confirmed_on']} |"
+        )
+    lines += [
+        "",
+        "| model | defense | hypothesis | verdict | note |",
+        "|---|---|---|---|---|",
+    ]
+    for _, r in dec.iterrows():
+        lines.append(
+            f"| {r['model']} | {r['defense']} | {r['hypothesis']} | {r['verdict']} | {r['note']} |"
+        )
+    lines += [
+        "",
+        "H3.1 is tested where the attack moves p(130) without defenses on sample 0:",
+        "",
+        "| model | attack | dp without defenses [lo, hi] | verdict |",
+        "|---|---|---|---|",
+    ]
+    for _, r in base.iterrows():
+        lines.append(f"| {r['model']} | {r['condition']} | {_ci(r)} | {r['verdict']} |")
+    lines += [
         "",
         "## Three axes",
         "",
@@ -317,4 +442,11 @@ def write(
             )
     lines.append("")
     (out / "defenses.md").write_text("\n".join(lines), encoding="utf-8")
-    return {"axes": ax, "by_condition": bc, "d4": d4}
+    return {
+        "axes": ax,
+        "by_condition": bc,
+        "d4": d4,
+        "baseline": base,
+        "verdicts": dec,
+        "k_of_n": kn,
+    }

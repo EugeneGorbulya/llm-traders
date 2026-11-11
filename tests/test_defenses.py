@@ -47,6 +47,16 @@ def test_tables_on_mock_with_labels_from_construction(tmp_path):
     assert 0 <= d4["precision"] <= 1 and 0 <= d4["recall"] <= 1
     assert (tmp_path / "out" / "defenses.md").exists()
 
+    # mock-gullible: D3 (datamarking) and D4 (filter) remove the attack entirely, so
+    # H3.1 fails with a note; D1 and D2 leave it untouched, so H3.1 fails plainly.
+    dec = res["verdicts"].set_index(["defense", "hypothesis"])
+    assert dec.loc[("D4", "H3.1 fake_fact_cred"), "note"] == "effect removed fully"
+    assert dec.loc[("D1", "H3.1 fake_fact_cred"), "verdict"] == "no"
+    assert dec.loc[("D1", "H3.3"), "verdict"] == "yes"
+    assert ("D4", "H3.2") in dec.index
+    kn = res["k_of_n"]
+    assert (kn["n"] == 1).all()
+
 
 def test_manual_labels_are_checked_and_compared(tmp_path):
     _, dirs = _run_grid(tmp_path)
