@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from llmtraders import level15
+from llmtraders import analysis15, level15
 from llmtraders.core import N_PERIODS
 from llmtraders.results import read_jsonl
 
@@ -40,3 +40,17 @@ def test_cells_agree_until_text_or_price_differ(tmp_path):
     assert p[seed, "pumped", "neutral", 3] == p[seed, "rational", "neutral", 3]
     assert p[seed, "rational", "fake_fact_cred", 3] >= 0.8
     assert p[seed, "rational", "neutral", 3] < 0.7
+
+
+def test_tables_pair_the_cells_of_a_seed(tmp_path):
+    out = level15.run(
+        "mock-gullible", seeds=1, out_dir=tmp_path, cache_path=tmp_path / "c.sqlite"
+    )
+    res = analysis15.write([out], tmp_path / "tables")
+    con = res["contrasts"].set_index(["attack", "contrast", "value"])
+    # Before the first message the four cells of a seed see the same prompts.
+    for attack in ("fake_fact_cred", "injection"):
+        assert con.loc[(attack, "text before", "all"), "mean"] == 0
+    assert con.loc[("fake_fact_cred", "text during", "all"), "mean"] > 0
+    assert len(res["curves"]) == 2 * N_PERIODS
+    assert (tmp_path / "tables" / "summary.md").exists()

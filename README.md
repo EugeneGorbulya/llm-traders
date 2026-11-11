@@ -22,6 +22,7 @@ uv run python -m experiments.defenses --model qwen3-4b  # защиты D1-D4 п�
 uv run python -m experiments.d4_labels                 # пустой лист data/labels/d4_feed.csv для ручной разметки ленты
 uv run python -m analysis.level1 results/level1/*/     # гипотезы, k из n, выбор для У2 (одна папка - таблицы одного прогона)
 uv run python -m analysis.defenses results/level1/*/   # защиты по трём осям, D4 как классификатор
+uv run python -m analysis.level15 results/level15/*/    # У1.5: p(130) по периодам, эффекты текста и цены, окна до / во время / после
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
 
