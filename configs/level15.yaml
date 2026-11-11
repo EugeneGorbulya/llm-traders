@@ -16,5 +16,5 @@ pump_periods: [3, 4, 5, 6, 7]
 # the same periods. Official news in period 4 falls inside, in period 8 after.
 msg_periods: [3, 4, 5, 6, 7]
 
-# fake_fact_cred stands in for "the strongest fake" until the level-1 grid names it.
+# fake_fact_cred: the strongest attack of the level-2 model qwen3-4b on the level-1 grid (11.11).
 attacks: [fake_fact_cred, injection]
