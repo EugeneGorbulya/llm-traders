@@ -1,0 +1,9 @@
+# Defense grid of plan v2 (7.4) on the level-1 snapshot: 4 defenses x 5 conditions
+# x 10 paraphrases x 3 states x 1 sample = 600 trader calls per model, plus one D4
+# filter call per feed. Sample 0 keeps the sampling seeds of sample 0 of the main grid,
+# so the main grid without defenses is the paired baseline.
+defenses: [D1, D2, D3, D4]
+# social_3 is the social-proof dose of H1.1; fake_fact_cred is the strongest attack of
+# the level-1 grid (11.11).
+conditions: [neutral, official_news, fake_fact_cred, social_3, injection]
+samples: 1

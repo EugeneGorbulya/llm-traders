@@ -273,6 +273,8 @@ def run(
                 "latency_ms": d.meta.get("latency_ms"),
                 "error": d.meta.get("error"),
                 "filter": d.meta.get("filter"),
+                # An invalid filter answer flags nothing, so D4 then passes the whole feed.
+                "filter_valid": d.meta.get("filter_valid"),
             }
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
             f.flush()

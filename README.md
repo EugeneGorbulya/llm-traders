@@ -18,7 +18,10 @@ uv run python -m experiments.level1 --model qwen3-8b   # сетка У1 (--dry-r
 uv run python -m experiments.level15 --model qwen3-8b  # У1.5: цена по сценарию x чат (--seeds 1: смоук)
 uv run python -m experiments.level2_smoke --model qwen3-8b  # смоук У2: 4 LLM + ZI, одна сессия без манипулятора
 uv run python -m experiments.finbert                   # FinBERT-трейдер на лентах У1 (бейзлайн, без LLM)
-uv run python -m analysis.level1 results/level1/qwen3-8b  # несколько папок: гипотезы, k из n, выбор для У2
+uv run python -m experiments.defenses --model qwen3-4b  # защиты D1-D4 по configs/defenses.yaml: 600 вызовов + фильтр D4
+uv run python -m experiments.d4_labels                 # пустой лист data/labels/d4_feed.csv для ручной разметки ленты
+uv run python -m analysis.level1 results/level1/*/     # гипотезы, k из n, выбор для У2 (одна папка — таблицы одного прогона)
+uv run python -m analysis.defenses results/level1/*/   # защиты по трём осям, D4 как классификатор
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
 
@@ -37,6 +40,15 @@ uv run python -m experiments.bank                      # проверка бан
 | gpt-oss-20b-high | gpt-oss:20b | 20.9B | MXFP4 | f38aa0c53da5 | high |
 
 Сэмплинг, лимиты токенов, платформа и адрес Ollama - `configs/models.yaml`. Полный digest и платформа пишутся в каждую строку `calls.jsonl`.
+
+Две модели идут через Anthropic API (квиз и сетка У1, 10.11.2026), A100 им не нужна:
+
+| Конфигурация | Модель API | Размышление | Сэмплинг |
+|---|---|---|---|
+| claude-haiku-5.5 | `claude-haiku-5-5` | выкл (`thinking: disabled`) | по умолчанию |
+| claude-sonnet-5.5 | `claude-sonnet-5-5` | `thinking: between_tools`: только между вызовами инструментов, а их в задаче нет | по умолчанию |
+
+Ответ идёт через structured outputs (`output_config`, та же JSON-схема, что у локальных моделей). Сэмплинг по умолчанию, потому что обе модели отвечают 400 на нестандартный (temperature и т. п.) и не принимают seed. Поэтому сэмплы различаются только случайностью API, а повторный прогон берёт ответы из кэша. Sonnet 5.5 не принимает `thinking: disabled`, поэтому у него `between_tools`. Ключ берётся из переменной `ANTHROPIC_API_KEY`. Квиз обеих моделей стоил $0.11, сетка У1 ≈ $4.3. Запуск тот же, что у локальных: `uv run python -m experiments.level1 --model claude-haiku-5.5`.
 
 FinBERT-бейзлайн: `ProsusAI/finbert` с Hugging Face, ревизия `0bc2ac10dda6929bcb1f77ccc43c7ec5c424f031` (зафиксирована в `llmtraders/finbert.py`), считается на CPU Mac. Каждый текст ленты (официальная новость и чат) голосует своей меткой: покупка, если позитивных больше, чем негативных, продажа - если меньше.
 
@@ -68,6 +80,6 @@ Mac должен не спать, пока идёт прогон: клиент �
 Что где лежит:
 - `llmtraders/` - движок и клиент моделей с кэшем;
 - `experiments/`, `analysis/` - скрипты запуска и таблиц;
-- `configs/` - модели, сетка У1, У1.5;
+- `configs/` - модели (локальные и API), сетка У1, У1.5, защиты;
 - `data/messages/` - банк сообщений: исходник `bank_v1.yaml` и замороженный `bank_v1.frozen.json` (10.11.2026, sha256 `fa80bf71b3e69179c3d9bcbca4120179742430dc1f6f22487e35665ca25b51bb`); код берёт замороженный, если он есть;
 - `results/` - результаты и кэш ответов; `results/mac/` - пилот и квиз 8.11 на Mac.

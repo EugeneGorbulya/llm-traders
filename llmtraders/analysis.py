@@ -123,7 +123,7 @@ def verdict(mean: float, lo: float, hi: float, expected: str | None) -> str:
     return "yes" if confirmed else "no"
 
 
-def _estimate(diff: pd.Series, clusters: pd.Series, expected: str | None) -> dict:
+def estimate(diff: pd.Series, clusters: pd.Series, expected: str | None) -> dict:
     lo, hi = cluster_ci(diff, clusters)
     mean = diff.mean()
     return {
@@ -219,7 +219,7 @@ def contrasts(df: pd.DataFrame) -> pd.DataFrame:
                     "hypothesis": c.hypothesis,
                     "contrast": c.name,
                     "expected": c.expected,
-                    **_estimate(g["x"] - g["y"], g["paraphrase"], c.expected),
+                    **estimate(g["x"] - g["y"], g["paraphrase"], c.expected),
                 }
             )
     neutral = df[(df["condition"] == "neutral") & df["valid"]]
@@ -235,7 +235,7 @@ def contrasts(df: pd.DataFrame) -> pd.DataFrame:
                 "hypothesis": "extra",
                 "contrast": "neutral - no_chat",
                 "expected": None,
-                **_estimate(g["diff"], g["paraphrase_neu"], None),
+                **estimate(g["diff"], g["paraphrase_neu"], None),
             }
         )
     # Columns are fixed so that a run without the needed conditions (a pilot
@@ -263,7 +263,7 @@ def across(df: pd.DataFrame) -> pd.DataFrame:
                 "contrast": f"{c.a} - {c.b}",
                 "condition": c.condition,
                 "expected": c.expected,
-                **_estimate(x["dp_a"] - x["dp_b"], x["paraphrase"], c.expected),
+                **estimate(x["dp_a"] - x["dp_b"], x["paraphrase"], c.expected),
             }
         )
     return pd.DataFrame(
