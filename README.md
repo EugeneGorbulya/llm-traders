@@ -20,7 +20,7 @@ uv run python -m experiments.level2_smoke --model qwen3-8b  # смоук У2: 4 
 uv run python -m experiments.finbert                   # FinBERT-трейдер на лентах У1 (бейзлайн, без LLM)
 uv run python -m experiments.defenses --model qwen3-4b  # защиты D1-D4 по configs/defenses.yaml: 600 вызовов + фильтр D4
 uv run python -m experiments.d4_labels                 # пустой лист data/labels/d4_feed.csv для ручной разметки ленты
-uv run python -m analysis.level1 results/level1/*/     # гипотезы, k из n, выбор для У2 (одна папка — таблицы одного прогона)
+uv run python -m analysis.level1 results/level1/*/     # гипотезы, k из n, выбор для У2 (одна папка - таблицы одного прогона)
 uv run python -m analysis.defenses results/level1/*/   # защиты по трём осям, D4 как классификатор
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
@@ -82,4 +82,5 @@ Mac должен не спать, пока идёт прогон: клиент �
 - `experiments/`, `analysis/` - скрипты запуска и таблиц;
 - `configs/` - модели (локальные и API), сетка У1, У1.5, защиты;
 - `data/messages/` - банк сообщений: исходник `bank_v1.yaml` и замороженный `bank_v1.frozen.json` (10.11.2026, sha256 `fa80bf71b3e69179c3d9bcbca4120179742430dc1f6f22487e35665ca25b51bb`); код берёт замороженный, если он есть;
+- `data/labels/` - ручная разметка ленты для D4 `d4_feed.csv` (11.11.2026, sha256 `cbd0c6216512b2299072fa5384eb3440fcd82345d31c56c48aaa78de0693797b`): истина для D4 как классификатора;
 - `results/` - результаты и кэш ответов; `results/mac/` - пилот и квиз 8.11 на Mac.
