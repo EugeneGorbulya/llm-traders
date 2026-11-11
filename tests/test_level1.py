@@ -198,12 +198,21 @@ def test_hypotheses_across_models_and_level2_choice(tmp_path):
 
 
 def test_verdict_follows_the_preregistered_rule():
-    assert analysis.verdict(0.01, 0.2, ">0") == "yes"
-    assert analysis.verdict(0.0, 0.2, ">0") == "no"
-    assert analysis.verdict(-0.2, -0.01, "<0") == "yes"
-    assert analysis.verdict(-0.1, 0.1, "~0") == "yes"
-    assert analysis.verdict(0.01, 0.1, "~0") == "no"
-    assert analysis.verdict(0.01, 0.1, None) == "-"
+    assert analysis.verdict(0.1, 0.01, 0.2, ">0") == "yes"
+    assert analysis.verdict(0.1, 0.0, 0.2, ">0") == "no"
+    assert analysis.verdict(-0.1, -0.2, -0.01, "<0") == "yes"
+    assert analysis.verdict(0.0, -0.1, 0.1, "~0") == "yes"
+    assert analysis.verdict(0.05, 0.01, 0.1, "~0") == "no"
+    assert analysis.verdict(0.05, 0.01, 0.1, None) == "-"
+
+
+def test_verdict_needs_the_minimum_effect():
+    # A deterministic model: 4 of 90 pairs shifted by 0.05 give a tight interval above 0.
+    assert analysis.verdict(0.002, 0.0006, 0.004, ">0") == "no"
+    assert analysis.verdict(-0.01, -0.015, -0.005, "<0") == "no"
+    assert analysis.verdict(0.01, 0.005, 0.015, "~0") == "yes"
+    at_threshold = np.mean([0.7 - 0.5] * 9 + [0.0] * 81)
+    assert analysis.verdict(at_threshold, 0.01, 0.03, ">0") == "yes"
 
 
 def test_cluster_bootstrap_resamples_whole_paraphrases():
