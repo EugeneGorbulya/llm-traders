@@ -17,6 +17,7 @@ uv run python -m experiments.quiz                      # Байес-квиз
 uv run python -m experiments.level1 --model qwen3-8b   # сетка У1 (--dry-run: только число вызовов)
 uv run python -m experiments.level15 --model qwen3-8b  # У1.5: цена по сценарию x чат (--seeds 1: смоук)
 uv run python -m experiments.level2_smoke --model qwen3-8b  # смоук У2: 4 LLM + ZI, одна сессия без манипулятора
+uv run python -m experiments.level2_calibration --model qwen3-4b  # калибровка У2 (K0): лестница 1/2/3 ZI-бота по configs/level2.yaml, 10 сессий на ступень, выбор числа ZI
 uv run python -m experiments.finbert                   # FinBERT-трейдер на лентах У1 (бейзлайн, без LLM)
 uv run python -m experiments.defenses --model qwen3-4b  # защиты D1-D4 по configs/defenses.yaml: 600 вызовов + фильтр D4
 uv run python -m experiments.d4_labels                 # пустой лист data/labels/d4_feed.csv для ручной разметки ленты

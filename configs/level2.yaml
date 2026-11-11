@@ -1,0 +1,31 @@
+version: level2_v1
+
+# Four LLM traders of one model. They differ only in endowment (v2 plan, section 5):
+# two hold extra cash, two extra shares, 1000 + 10 on average.
+traders:
+  - {cash: 1500, shares: 5}
+  - {cash: 1500, shares: 5}
+  - {cash: 500, shares: 15}
+  - {cash: 500, shares: 15}
+# Endowment of each ZI bot.
+zi: {cash: 1000, shares: 10}
+
+# K0 without a manipulator: is there turnover, does the price stay near the rational one.
+calibration:
+  # Balanced values and seeds apart from the main runs, so the market is not tuned
+  # on the sessions that later measure the effect.
+  seeds:
+    130: [101, 102, 103, 104, 105]
+    70: [106, 107, 108, 109, 110]
+  # Ladder fixed on 11.11 before the data. The level-2 smoke showed that LLM traders
+  # with the same news never trade with each other, so endowments do not create
+  # turnover and the lever is the number of ZI bots. The market takes the smallest
+  # step that passes both criteria; if none passes, the step where the LLM traders
+  # trade most (among those within the price criterion), as a limitation: extra bots
+  # may trade with each other, which adds noise and no LLM trades.
+  zi_steps: [1, 2, 3]
+  # Exit criteria of gate 3 (docs/PLAN.md, revised 11.11): an LLM trader trades in at
+  # least this many of 12 periods in most sessions (a ZI-only trade says nothing of
+  # the LLM orders), and the median |price - rational| over traded periods.
+  min_llm_traded_periods: 6
+  max_median_deviation: 10
