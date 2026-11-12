@@ -19,6 +19,9 @@ uv run python -m experiments.level15 --model qwen3-8b  # У1.5: цена по с
 uv run python -m experiments.level2_smoke --model qwen3-8b  # смоук У2: 4 LLM + ZI, одна сессия без манипулятора
 uv run python -m experiments.level2_calibration --model qwen3-4b  # калибровка У2 (K0): лестница 1/2/3 ZI-бота по configs/level2.yaml, 10 сессий на ступень, выбор числа ZI
 uv run python -m experiments.level2 --model qwen3-4b  # У2: K0, K1, K3, S x 10 сидов x 3 плеча (контроль, fake_fact_cred, injection) = 120 сессий; --topup: доливка 10 сидов по правилу пре-регистрации
+uv run python -m experiments.variant_c --model qwen3-4b  # У2, вариант C (exploratory): обвал, LLM-манипулятор, смешанный рынок 2 + 2 на K0; --piece: один кусок, --seeds 1: смоук
+uv run python -m experiments.crash_check --model qwen3-4b  # проверка атаки на обвал в формате У1 до варианта C (fake_fact_cred_down против нейтрального двойника), в results/level1/extra/
+uv run python -m experiments.d4_check --model qwen3-4b  # фильтр D4 на окнах чата рынка: сообщения LLM-манипулятора против банка (fake_fact_cred в K0)
 uv run python -m experiments.finbert                   # FinBERT-трейдер на лентах У1 (бейзлайн, без LLM)
 uv run python -m experiments.defenses --model qwen3-4b  # защиты D1-D4 по configs/defenses.yaml: 600 вызовов + фильтр D4
 uv run python -m experiments.d4_labels                 # пустой лист data/labels/d4_feed.csv для ручной разметки ленты
@@ -26,6 +29,7 @@ uv run python -m analysis.level1 results/level1/*/     # гипотезы, k и�
 uv run python -m analysis.defenses results/level1/*/   # защиты по трём осям, D4 как классификатор
 uv run python -m analysis.level15 results/level15/*/    # У1.5: p(130) по периодам, эффекты текста и цены, окна до / во время / после
 uv run python -m analysis.level2 results/level2/main/level2_v1/qwen3-4b/  # У2 по пре-регистрации: правило доливки, гипотезы, сдвиги цены и убеждений
+uv run python -m analysis.variant_c results/level2/variant_c/level2_v1/qwen3-4b/  # вариант C: описательные таблицы по кускам, без вердиктов
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
 

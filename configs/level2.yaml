@@ -64,3 +64,31 @@ main:
   analysis:
     periods: [2, 8]
     topup_half_width: 3.0
+
+# Variant C (exploratory, no verdicts; docs/prereg/l2.md, amendment of 13.11): three
+# pieces on the K0 market of the main runs, a control and an attack arm on its seeds.
+variant_c:
+  seeds:
+    130: [201, 202, 203, 204, 205]
+    70: [206, 207, 208, 209, 210]
+  pieces:
+    # The mirror attack ("it pays 70"): the manipulator buys on its schedule instead.
+    crash:
+      attack: fake_fact_cred_down
+      direction: down
+      manipulator: {cash: 2500, shares: 0}
+    # An LLM with the manipulator's goal writes the messages. Its silent control arm is
+    # the K0 control of the main runs, so it comes from the cache and the piece takes
+    # all 20 seeds of the main runs with the top-up.
+    llm_manipulator:
+      attack: llm_generated
+      writer: qwen3-14b
+      seeds:
+        130: [201, 202, 203, 204, 205, 211, 212, 213, 214, 215]
+        70: [206, 207, 208, 209, 210, 216, 217, 218, 219, 220]
+    # Two models in one market, one of each endowment per model (traders 0-3). Haiku
+    # reads the chat and does not believe it (level 1, 13.11 decision), in the slots
+    # that are blind in S: K0 all gullible, S two blind, mixed two disbelieving.
+    mixed:
+      attack: fake_fact_cred
+      trader_models: [qwen3-4b, claude-haiku-5.5, qwen3-4b, claude-haiku-5.5]

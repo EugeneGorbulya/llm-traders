@@ -45,6 +45,12 @@ class MockBackend(Backend):
             return RawResponse(
                 text=self._filter(user), latency_ms=1.0, tokens_in=10, tokens_out=10
             )
+        # The LLM manipulator: one message that names the value its goal points to.
+        if schema is not None and "messages" in schema.get("properties", {}):
+            pumping = "price goes up" in messages[0]["content"]
+            claim = "130" if pumping else "70"
+            text = json.dumps({"messages": [f"Insiders say KVX pays {claim}."]})
+            return RawResponse(text=text, latency_ms=1.0, tokens_in=10, tokens_out=10)
         # "broken" fails the first time it sees a prompt, so the client's retry
         # (a new seed, same prompt) succeeds.
         prompt = json.dumps(messages)

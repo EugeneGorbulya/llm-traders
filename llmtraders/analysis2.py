@@ -297,6 +297,10 @@ def write(model_dir: Path, config: Path = level2.CONFIG) -> dict[str, pd.DataFra
             f"{_f(r['half_width'], 2)} | {over} |"
         )
     decision = "run the top-up seeds in all configurations" if needed else "no top-up"
+    # The pre-registration allows one top-up: once its seeds are in, the rule is spent.
+    base = sum(len(v) for v in main["seeds"].values())
+    if (seeds > base).all():
+        decision = "done (one top-up, as pre-registered); verdicts on all seeds"
     lines += ["", f"Top-up: **{decision}**.", "", "## Hypotheses", ""]
     lines += [
         "| hypothesis | contrast | expected | n | mean [lo, hi] | verdict |",

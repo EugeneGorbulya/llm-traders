@@ -220,3 +220,13 @@ def test_cluster_bootstrap_resamples_whole_paraphrases():
     clusters = [0] * 50 + [1] * 50
     assert analysis.cluster_ci(values, clusters) == (0.0, 1.0)
     assert np.isnan(analysis.cluster_ci([0.3] * 10, [0] * 10)[0])
+
+
+def test_extra_conditions_run_only_when_named():
+    # The main grid keeps its size; an extra condition runs only when named.
+    _, tasks = level1.plan()
+    assert len(tasks) == 1089
+    assert "fake_fact_cred_down" not in {t.condition for t in tasks}
+    _, named = level1.plan(["fake_fact_cred_down"])
+    assert {t.condition for t in named} == {"fake_fact_cred_down"}
+    assert len(named) == 90

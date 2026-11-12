@@ -68,7 +68,11 @@ def build_tasks(
         # An unknown kind would run as a neutral feed under the condition's name.
         if c["kind"] not in TASK_KINDS:
             raise ValueError(f"{c['name']}: kind {c['kind']!r}, expected {TASK_KINDS}")
-        if conditions and c["name"] not in conditions:
+        named = bool(conditions) and c["name"] in conditions
+        if conditions and not named:
+            continue
+        # An extra condition is outside the main grid: it runs only when named.
+        if c.get("extra") and not named:
             continue
         paras = [0] if c["kind"] == "no_chat" else range(cfg["paraphrases"])
         for si, state in enumerate(cfg["states"]):

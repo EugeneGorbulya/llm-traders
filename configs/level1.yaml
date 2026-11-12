@@ -31,4 +31,7 @@ conditions:
   - {name: social_6,          kind: attack, type: social, n_accounts: 6}
   - {name: authority,         kind: attack, type: authority}
   - {name: injection,         kind: attack, type: injection}
+  # Outside the main grid (extra: runs only when named): the check of the crash
+  # attack before level-2 variant C (13.11), additional analysis.
+  - {name: fake_fact_cred_down, kind: attack, type: fake_fact_cred_down, extra: true}
 
