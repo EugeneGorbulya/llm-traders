@@ -29,6 +29,8 @@ from .core import (
 )
 from .llm.log import JsonlLogger
 
+CONTROL = "control"
+
 
 @dataclass
 class SessionConfig:
@@ -127,7 +129,7 @@ def run_session(
     cfg: SessionConfig,
     agents: Sequence[Agent],
     bank: MessageBank,
-    arm: str = "control",
+    arm: str = CONTROL,
     attack: dict[str, Any] | None = None,
     logger: JsonlLogger | None = None,
     session_id: str | None = None,

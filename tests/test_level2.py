@@ -1,8 +1,101 @@
 import pandas as pd
+import yaml
 
 from llmtraders import level2
 from llmtraders.core import N_PERIODS
+from llmtraders.market import CONTROL
 from llmtraders.results import read_jsonl
+
+
+def test_main_market_configurations(client, bank):
+    cfg = level2.load_config()
+    main = cfg["main"]
+
+    def agents(configuration):
+        built = level2.main_market(
+            cfg, configuration, "mock-rational", client, 201, bank
+        )
+        return {a.agent_id: a for a in built}
+
+    k0 = agents("K0")
+    assert level2.FUND not in k0
+    assert all(a.sees_chat for a in k0.values())
+    assert len([k for k in k0 if level2.is_zi(k)]) == main["zi_bots"]
+    assert k0[level2.MANIP].shares == main["manipulator"]["shares"]
+    for name in ("K1", "K3"):
+        fund = agents(name)[level2.FUND]
+        spec = main["configurations"][name]["fundamental"]
+        assert (fund.cash, fund.shares) == (spec["cash"], spec["shares"])
+    s = agents("S")
+    blind = sorted(k for k, a in s.items() if not a.sees_chat)
+    assert blind == ["llm1", "llm3"]
+    # One blind trader of each endowment.
+    assert len({s[k].cash for k in blind}) == 2
+
+
+def test_main_run_twins_and_arms(tmp_path):
+    cfg = level2.load_config()
+    main = cfg["main"]
+    main["seeds"] = {130: [201], 70: [206]}
+    path = tmp_path / "level2.yaml"
+    path.write_text(yaml.safe_dump(cfg), encoding="utf-8")
+    out = level2.run(
+        "mock-gullible",
+        config=path,
+        out_dir=tmp_path / "out",
+        cache_path=tmp_path / "c.sqlite",
+    )
+    arms = [CONTROL, *main["attacks"]]
+    for name in main["configurations"]:
+        recs = read_jsonl(out / name / "seeds" / "sessions.jsonl")
+        periods = [r for r in recs if r["kind"] == "period"]
+        sids = {r["session"] for r in recs if r["kind"] == "session"}
+        assert len(sids) == 2
+        assert len(recs) == 2 * len(arms) * (N_PERIODS + 1)
+        by = {(r["session"], r["arm"], r["period"]): r for r in periods}
+        for r in periods:
+            llm = [d for k, d in r["decisions"].items() if k.startswith(level2.LLM)]
+            assert len(llm) == 4
+            manip_orders = [o for o in r["orders"] if o["agent_id"] == level2.MANIP]
+            if manip_orders:
+                assert r["period"] in (6, 7, 8, 9)
+                assert all(o["side"] == "sell" for o in manip_orders)
+
+        for sid in sids:
+            # The twins send the same prompts in the first period (same call keys) and
+            # get the same answers; messages come only in attack arms.
+            first = []
+            for arm in arms:
+                decisions = by[(sid, arm, 1)]["decisions"].items()
+                answers = {
+                    k: (d.get("call_key"), d["order"], d["p_high"])
+                    for k, d in decisions
+                }
+                first.append(answers)
+            assert all(a == first[0] for a in first)
+            for arm in arms:
+                posted = {
+                    t
+                    for t in range(1, N_PERIODS + 1)
+                    if any(
+                        m["kind"] == "manipulation" for m in by[(sid, arm, t)]["chat"]
+                    )
+                }
+                assert posted == (set() if arm == CONTROL else {2, 3, 4, 5, 6})
+
+    # In S the blind traders answer the same in every arm (the mock ignores the
+    # price), while a trader who sees the fake 130 believes it.
+    recs = read_jsonl(out / "S" / "seeds" / "sessions.jsonl")
+    beliefs = {
+        (r["session"], r["arm"]): r["beliefs"] for r in recs if r["kind"] == "session"
+    }
+    for sid in {s for s, _ in beliefs}:
+        control = beliefs[(sid, CONTROL)]
+        fake = beliefs[(sid, "fake_fact_cred")]
+        for blind in ("llm1", "llm3"):
+            assert fake[blind] == control[blind]
+        # The mock's gullible belief is 0.85 with a jitter of 0.02.
+        assert fake["llm0"][2] >= 0.8 > control["llm0"][2]
 
 
 def test_market_follows_the_config(client):

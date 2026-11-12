@@ -1,4 +1,4 @@
-"""Level 2: a market of 4 LLM traders and ZI bots; for now the K0 calibration."""
+"""Level 2: a market of 4 LLM traders and ZI bots: the K0 calibration and the main runs."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from .agents import Agent, LLMTrader, ZIBot
+from .agents import Agent, FundamentalBot, LLMTrader, ScriptedManipulator, ZIBot
 from .analysis import _f
 from .bayes import PRIOR_HIGH, value_from_p
 from .chat import MessageBank
@@ -17,12 +17,15 @@ from .core import N_PERIODS, ROOT
 from .llm.client import LLMClient
 from .llm.config import get_model
 from .llm.log import JsonlLogger
-from .market import SessionConfig, run_session
+from .market import CONTROL, SessionConfig, run_session
 from .prompts import PromptConfig
 from .results import RESULTS, make_client, read_jsonl
 
 CONFIG = ROOT / "configs" / "level2.yaml"
+LLM = "llm"
 ZI = "zi"
+FUND = "fund"
+MANIP = "manip"
 # Before the first trade the reference price is the prior value, as in run_session.
 PRIOR_VALUE = value_from_p(PRIOR_HIGH)
 
@@ -53,7 +56,7 @@ def market(
     pcfg = PromptConfig(ticker=ticker)
     agents: list[Agent] = [
         LLMTrader(
-            agent_id=f"llm{i}",
+            agent_id=f"{LLM}{i}",
             cash=float(t["cash"]),
             shares=int(t["shares"]),
             model=mcfg,
@@ -72,6 +75,85 @@ def market(
         )
         agents.append(bot)
     return agents
+
+
+def main_market(
+    cfg: dict[str, Any],
+    configuration: str,
+    model: str,
+    client: LLMClient,
+    seed: int,
+    bank: MessageBank,
+) -> list[Agent]:
+    """The calibrated market plus the bots of a configuration and the manipulator."""
+    main = cfg["main"]
+    spec = main["configurations"][configuration]
+    agents = market(cfg, model, client, seed, bank.ticker, main["zi_bots"])
+    by_id = {a.agent_id: a for a in agents}
+    for i in spec.get("blind", []):
+        by_id[f"{LLM}{i}"].sees_chat = False
+    fund = spec.get("fundamental")
+    if fund:
+        bot = FundamentalBot(
+            agent_id=FUND, cash=float(fund["cash"]), shares=int(fund["shares"])
+        )
+        agents.append(bot)
+    m = main["manipulator"]
+    manipulator = ScriptedManipulator(
+        agent_id=MANIP,
+        cash=float(m["cash"]),
+        shares=int(m["shares"]),
+        bank=bank,
+        seed=seed,
+    )
+    agents.append(manipulator)
+    return agents
+
+
+def run(
+    model: str,
+    *,
+    seed_set: str = "seeds",
+    config: Path = CONFIG,
+    out_dir: Path | None = None,
+    cache_path: Path | None = None,
+) -> Path:
+    """Main runs: every configuration x seed of `seed_set` x control and attack arms."""
+    cfg = load_config(config)
+    main = cfg["main"]
+    bank = MessageBank.load()
+    default_out = RESULTS / "level2" / "main" / cfg["version"] / model
+    out = Path(out_dir) if out_dir else default_out
+    attack_arms = [(a, {"type": a}) for a in main["attacks"]]
+    # Control first: the periods before the first message are the same prompts in
+    # every arm, so the attack twins take them from the cache.
+    arms = [(CONTROL, None), *attack_arms]
+    for name in main["configurations"]:
+        step = out / name / seed_set
+        client = make_client(step, cache_path)
+        (step / "sessions.jsonl").unlink(missing_ok=True)
+        logger = JsonlLogger(step / "sessions.jsonl")
+        tags = {
+            "model": model,
+            "version": cfg["version"],
+            "configuration": name,
+            "seed_set": seed_set,
+            "zi_bots": main["zi_bots"],
+        }
+        for value, seeds in main[seed_set].items():
+            for seed in seeds:
+                for arm, attack in arms:
+                    run_session(
+                        SessionConfig(seed=seed, value=float(value)),
+                        main_market(cfg, name, model, client, seed, bank),
+                        bank,
+                        arm=arm,
+                        attack=attack,
+                        logger=logger,
+                        session_id=f"{name}-v{value}-s{seed}",
+                        tags=tags,
+                    )
+    return out
 
 
 def calibrate(

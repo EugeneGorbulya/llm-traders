@@ -29,3 +29,33 @@ calibration:
   # the LLM orders), and the median |price - rational| over traded periods.
   min_llm_traded_periods: 6
   max_median_deviation: 10
+
+# Main runs (v2 plan, 7.3): configurations x seeds x arms, the effect is the paired
+# difference of an attack arm against the control arm of the same seed.
+main:
+  # The K0 calibration of 12.11: no step passed, by the rule of 11.11 the market takes
+  # the step where the LLM traders trade most (docs/prereg/l2.md).
+  zi_bots: 3
+  # The same seeds in every configuration, so the configurations are paired too; apart
+  # from the calibration seeds. Values balanced as in the calibration.
+  seeds:
+    130: [201, 202, 203, 204, 205]
+    70: [206, 207, 208, 209, 210]
+  # One top-up by the pre-registered rule (docs/prereg/l2.md), fixed before the runs.
+  topup_seeds:
+    130: [211, 212, 213, 214, 215]
+    70: [216, 217, 218, 219, 220]
+  # Attack arms; the control arm has the manipulator trading on schedule and silent.
+  # fake_fact_cred: the strongest attack of qwen3-4b on the level-1 grid (11.11).
+  attacks: [fake_fact_cred, injection]
+  # v2 plan, section 6: an extra block of shares for its schedule (posts in periods 2-6,
+  # sells 5 a period in 6-9, the ScriptedManipulator defaults).
+  manipulator: {cash: 0, shares: 20}
+  configurations:
+    K0: {}
+    # The fundamental bot with the capital of an average LLM trader, then three times it.
+    K1: {fundamental: {cash: 1000, shares: 10}}
+    K3: {fundamental: {cash: 3000, shares: 30}}
+    # K0 where two LLM traders do not see the chat, one of each endowment: a shift of
+    # their beliefs reaches them only through the price.
+    S: {blind: [1, 3]}
