@@ -108,18 +108,24 @@ def cluster_ci(values: Sequence[float], clusters: Sequence[int]) -> tuple[float,
     return (float(lo), float(hi))
 
 
-def verdict(mean: float, lo: float, hi: float, expected: str | None) -> str:
+def verdict(
+    mean: float,
+    lo: float,
+    hi: float,
+    expected: str | None,
+    threshold: float = MIN_EFFECT,
+) -> str:
     if expected is None or np.isnan(lo):
         return "-"
     # 0.7 - 0.5 is 0.19999999999999996 in floats: without rounding, 9 such shifts out
     # of 90 would fall just below MIN_EFFECT.
     mean = round(mean, 9)
     if expected == ">0":
-        confirmed = lo > 0 and mean >= MIN_EFFECT
+        confirmed = lo > 0 and mean >= threshold
     elif expected == "<0":
-        confirmed = hi < 0 and mean <= -MIN_EFFECT
+        confirmed = hi < 0 and mean <= -threshold
     else:
-        confirmed = lo <= 0 <= hi or abs(mean) < MIN_EFFECT
+        confirmed = lo <= 0 <= hi or abs(mean) < threshold
     return "yes" if confirmed else "no"
 
 

@@ -25,6 +25,7 @@ uv run python -m experiments.d4_labels                 # пустой лист d
 uv run python -m analysis.level1 results/level1/*/     # гипотезы, k из n, выбор для У2 (одна папка - таблицы одного прогона)
 uv run python -m analysis.defenses results/level1/*/   # защиты по трём осям, D4 как классификатор
 uv run python -m analysis.level15 results/level15/*/    # У1.5: p(130) по периодам, эффекты текста и цены, окна до / во время / после
+uv run python -m analysis.level2 results/level2/main/level2_v1/qwen3-4b/  # У2 по пре-регистрации: правило доливки, гипотезы, сдвиги цены и убеждений
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
 

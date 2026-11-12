@@ -59,3 +59,8 @@ main:
     # K0 where two LLM traders do not see the chat, one of each endowment: a shift of
     # their beliefs reaches them only through the price.
     S: {blind: [1, 3]}
+  # Analysis fixed in docs/prereg/l2.md (12.11, before the runs): the window of the
+  # main metric and the half-width of its interval above which the top-up seeds run.
+  analysis:
+    periods: [2, 8]
+    topup_half_width: 3.0
