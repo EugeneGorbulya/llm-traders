@@ -62,17 +62,18 @@ def load(dirs: Sequence[Path]) -> pd.DataFrame:
     for d in dirs:
         rows += read_jsonl(Path(d) / "results.jsonl")
         for r in read_jsonl(Path(d) / "sessions.jsonl"):
+            key = {"model": r["model"], "session": r["session"]}
             if r["kind"] == "period":
                 side = r["decisions"]["trader"]["side"]
-                sides.append(
-                    {"session": r["session"], "period": r["period"], "side": side}
-                )
+                sides.append({**key, "period": r["period"], "side": side})
             elif r["kind"] == "session":
                 news = {int(k): v for k, v in r["signals"].items()}
-                signals.append({"session": r["session"], "news_p4": news.get(4)})
+                signals.append({**key, "news_p4": news.get(4)})
+    # Session ids repeat across models, so the model is part of the key.
+    keys = ["model", "session"]
     df = pd.DataFrame(rows)
-    df = df.merge(pd.DataFrame(sides), on=["session", "period"], how="left")
-    df = df.merge(pd.DataFrame(signals), on="session", how="left")
+    df = df.merge(pd.DataFrame(sides), on=[*keys, "period"], how="left")
+    df = df.merge(pd.DataFrame(signals), on=keys, how="left")
     df["p"] = df["p_high"].where(df["valid"])
     df["buy"] = np.where(df["valid"], (df["side"] == "buy").astype(float), np.nan)
     return df

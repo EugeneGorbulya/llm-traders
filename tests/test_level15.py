@@ -54,3 +54,20 @@ def test_tables_pair_the_cells_of_a_seed(tmp_path):
     assert con.loc[("fake_fact_cred", "text during", "all"), "mean"] > 0
     assert len(res["curves"]) == 2 * N_PERIODS
     assert (tmp_path / "tables" / "summary.md").exists()
+
+
+def test_load_keeps_models_apart(tmp_path):
+    # Two models run the same sessions: their rows must not be merged with each other.
+    dirs = []
+    for model in ("mock-gullible", "mock-rational"):
+        out = level15.run(
+            model,
+            seeds=1,
+            out_dir=tmp_path / model,
+            cache_path=tmp_path / "c.sqlite",
+        )
+        dirs.append(out)
+    one = analysis15.load(dirs[:1])
+    both = analysis15.load(dirs)
+    assert len(both) == 2 * len(one)
+    assert both.groupby("model")["side"].count().tolist() == [len(one)] * 2
