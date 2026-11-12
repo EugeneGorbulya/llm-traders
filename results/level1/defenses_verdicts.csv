@@ -1,0 +1,27 @@
+model,defense,hypothesis,verdict,note
+qwen3-14b,D1,H3.1 fake_fact_cred,yes,
+qwen3-14b,D1,H3.1 social_3,yes,
+qwen3-14b,D1,H3.3,no,
+qwen3-14b,D2,H3.1 fake_fact_cred,no,
+qwen3-14b,D2,H3.1 social_3,no,
+qwen3-14b,D2,H3.3,yes,
+qwen3-14b,D3,H3.1 fake_fact_cred,no,
+qwen3-14b,D3,H3.1 social_3,no,
+qwen3-14b,D3,H3.3,yes,
+qwen3-14b,D4,H3.1 fake_fact_cred,no,effect removed fully
+qwen3-14b,D4,H3.1 social_3,no,effect removed fully
+qwen3-14b,D4,H3.3,yes,
+qwen3-4b,D1,H3.1 fake_fact_cred,yes,
+qwen3-4b,D1,H3.1 social_3,yes,
+qwen3-4b,D1,H3.3,yes,
+qwen3-4b,D2,H3.1 fake_fact_cred,no,
+qwen3-4b,D2,H3.1 social_3,yes,
+qwen3-4b,D2,H3.3,yes,
+qwen3-4b,D3,H3.1 fake_fact_cred,yes,
+qwen3-4b,D3,H3.1 social_3,yes,
+qwen3-4b,D3,H3.3,yes,
+qwen3-4b,D4,H3.1 fake_fact_cred,no,effect removed fully
+qwen3-4b,D4,H3.1 social_3,yes,
+qwen3-4b,D4,H3.3,yes,
+qwen3-14b,D4,H3.2,no,
+qwen3-4b,D4,H3.2,no,
