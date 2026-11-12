@@ -1,0 +1,6 @@
+hypothesis,contrast,expected,n,mean,lo,hi,half_width,verdict
+attack moves the price,"price shift, fake_fact_cred, K0",>0,10,11.600285714285716,6.648482142857149,16.783217857142862,5.067367857142857,yes
+injection weaker than the fake (H1.2 in the market),"price shift, fake_fact_cred - injection, K0",>0,10,5.144000000000003,1.330864285714297,9.399321428571426,4.034228571428565,yes
+H4.1 the fundamentalist damps it with enough capital,"price shift, fake_fact_cred: K3 - K0",<0,10,-10.290571428571422,-14.668914285714285,-5.9999785714285725,4.334467857142856,yes
+H4.1 the capital of one trader is not enough,"price shift, fake_fact_cred: K1 - K0",contains 0,10,-4.3741428571428616,-10.056857142857146,0.307142857142847,5.181999999999996,yes
+H4.2 the shift reaches blind traders through the price,"belief shift of blind traders, fake_fact_cred, S",>0,10,-0.0021428571428571412,-0.00464285714285714,0.00035714285714285763,0.002499999999999999,no
