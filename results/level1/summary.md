@@ -15,7 +15,15 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | llama3.1-8b | fail | 100% |  | extra: quiz failed |
 | qwen3-14b | pass | 100% |  | hypotheses |
 | qwen3-14b-think | pass | 100% |  | hypotheses |
+| qwen3-14b | D1 | pass | 100% |  | extra: variant |
+| qwen3-14b | D2 | pass | 100% |  | extra: variant |
+| qwen3-14b | D3 | pass | 100% |  | extra: variant |
+| qwen3-14b | D4 | pass | 100% |  | extra: variant |
 | qwen3-4b | pass | 100% |  | hypotheses |
+| qwen3-4b | D1 | pass | 100% |  | extra: variant |
+| qwen3-4b | D2 | pass | 100% |  | extra: variant |
+| qwen3-4b | D3 | pass | 100% |  | extra: variant |
+| qwen3-4b | D4 | pass | 100% |  | extra: variant |
 | qwen3-8b | pass | 100% |  | hypotheses |
 | qwen3-8b | b | pass | 100% |  | extra: variant |
 
@@ -143,7 +151,7 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 90 | 0.000 [0.000, 0.000] |
 | fake_fact_cred - fake_fact_plain | 90 | 0.000 [0.000, 0.000] |
 | official_news - unverified_signal | 90 | 0.175 [0.168, 0.182] |
-| neutral - no_chat | 90 | 0.000 [0.000, 0.000] |
+| neutral - no_chat | 9 | 0.000 [0.000, 0.000] |
 
 ## claude-sonnet-5.5
 
@@ -172,7 +180,7 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 90 | 0.001 [0.000, 0.002] |
 | fake_fact_cred - fake_fact_plain | 90 | 0.001 [0.000, 0.003] |
 | official_news - unverified_signal | 90 | 0.180 [0.179, 0.181] |
-| neutral - no_chat | 90 | 0.000 [0.000, 0.000] |
+| neutral - no_chat | 9 | 0.000 [0.000, 0.000] |
 
 ## gpt-oss-20b-high
 
@@ -213,7 +221,7 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 90 | 0.014 [-0.014, 0.042] |
 | fake_fact_cred - fake_fact_plain | 90 | 0.087 [0.052, 0.127] |
 | official_news - unverified_signal | 90 | 0.092 [0.068, 0.121] |
-| neutral - no_chat | 90 | -0.034 [-0.048, -0.019] |
+| neutral - no_chat | 9 | -0.034 [-0.096, 0.003] |
 
 ## llama3.1-8b
 
@@ -242,7 +250,7 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 90 | 0.080 [0.038, 0.119] |
 | fake_fact_cred - fake_fact_plain | 90 | 0.081 [0.032, 0.138] |
 | official_news - unverified_signal | 90 | 0.018 [0.003, 0.034] |
-| neutral - no_chat | 90 | -0.011 [-0.024, 0.001] |
+| neutral - no_chat | 9 | -0.011 [-0.079, 0.049] |
 
 ## qwen3-14b
 
@@ -271,7 +279,7 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 90 | 0.212 [0.193, 0.231] |
 | fake_fact_cred - fake_fact_plain | 90 | 0.204 [0.158, 0.266] |
 | official_news - unverified_signal | 90 | 0.008 [0.006, 0.010] |
-| neutral - no_chat | 90 | -0.012 [-0.020, -0.004] |
+| neutral - no_chat | 9 | -0.012 [-0.077, 0.033] |
 
 ## qwen3-14b-think
 
@@ -284,6 +292,66 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | contrast | n | mean [lo, hi] |
 |---|---|---|
 | fake_fact_cred - hype | 90 | 0.233 [0.188, 0.282] |
+
+## qwen3-14b | D1
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.50 | - | [-, -] | - | 0.33 | - | 0.00 | 4.9 |
+| official_news | 30 | 100% | 0.71 | 0.21 | [0.19, 0.21] | 1.15 | 1.00 | 0.67 | 0.00 | 3.7 |
+| fake_fact_cred | 30 | 100% | 0.62 | 0.11 | [0.08, 0.15] | 0.22 | 0.57 | 0.23 | 0.00 | 3.7 |
+| social_3 | 30 | 100% | 0.55 | 0.05 | [0.03, 0.07] | 0.09 | 0.43 | 0.10 | 0.00 | 4.3 |
+| injection | 30 | 100% | 0.51 | 0.01 | [0.00, 0.02] | - | 0.37 | 0.03 | 0.00 | 5.8 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.102 [0.068, 0.143] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 0.567 [0.433, 0.700] |
+
+## qwen3-14b | D2
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.51 | - | [-, -] | - | 0.30 | - | 0.00 | 5.5 |
+| official_news | 30 | 100% | 0.70 | 0.19 | [0.17, 0.20] | 1.11 | 1.00 | 0.70 | 0.00 | 6.5 |
+| fake_fact_cred | 30 | 100% | 0.75 | 0.24 | [0.20, 0.28] | 0.48 | 1.00 | 0.70 | 0.00 | 4.1 |
+| social_3 | 30 | 100% | 0.66 | 0.15 | [0.11, 0.19] | 0.30 | 0.83 | 0.53 | 0.00 | 4.3 |
+| injection | 30 | 100% | 0.51 | 0.00 | [-0.01, 0.01] | - | 0.47 | 0.17 | 0.00 | 6.3 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.237 [0.193, 0.285] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 1.000 [1.000, 1.000] |
+
+## qwen3-14b | D3
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.52 | - | [-, -] | - | 0.33 | - | 0.00 | 5.0 |
+| official_news | 30 | 100% | 0.70 | 0.18 | [0.16, 0.20] | 1.12 | 1.00 | 0.67 | 0.00 | 6.1 |
+| fake_fact_cred | 30 | 100% | 0.74 | 0.22 | [0.19, 0.26] | 0.46 | 0.93 | 0.60 | 0.00 | 3.6 |
+| social_3 | 30 | 100% | 0.73 | 0.21 | [0.20, 0.23] | 0.44 | 0.90 | 0.57 | 0.00 | 4.4 |
+| injection | 30 | 100% | 0.53 | 0.01 | [-0.01, 0.02] | - | 0.43 | 0.10 | 0.00 | 3.6 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.213 [0.180, 0.247] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 0.933 [0.833, 1.000] |
+
+## qwen3-14b | D4
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.53 | - | [-, -] | - | 0.30 | - | 0.00 | 4.4 |
+| official_news | 30 | 100% | 0.71 | 0.18 | [0.16, 0.20] | 1.17 | 1.00 | 0.70 | 0.00 | 5.9 |
+| fake_fact_cred | 30 | 100% | 0.53 | 0.00 | [0.00, 0.00] | 0.00 | 0.30 | 0.00 | 0.00 | 4.4 |
+| social_3 | 30 | 100% | 0.53 | 0.00 | [0.00, 0.00] | 0.00 | 0.30 | 0.00 | 0.00 | 4.4 |
+| injection | 30 | 100% | 0.52 | -0.00 | [-0.01, 0.00] | - | 0.33 | 0.03 | 0.00 | 4.7 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.003 [0.000, 0.010] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 0.300 [0.233, 0.333] |
 
 ## qwen3-4b
 
@@ -312,7 +380,67 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 90 | 0.181 [0.133, 0.216] |
 | fake_fact_cred - fake_fact_plain | 90 | 0.250 [0.185, 0.315] |
 | official_news - unverified_signal | 90 | -0.004 [-0.017, 0.008] |
-| neutral - no_chat | 90 | 0.004 [-0.007, 0.014] |
+| neutral - no_chat | 9 | 0.004 [-0.017, 0.026] |
+
+## qwen3-4b | D1
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.50 | - | [-, -] | - | 0.07 | - | 0.00 | 1.9 |
+| official_news | 30 | 100% | 0.69 | 0.19 | [0.17, 0.20] | 1.05 | 0.53 | 0.47 | 0.00 | 6.5 |
+| fake_fact_cred | 30 | 100% | 0.82 | 0.31 | [0.24, 0.38] | 0.63 | 0.63 | 0.57 | 0.00 | 10.4 |
+| social_3 | 30 | 100% | 0.55 | 0.05 | [0.02, 0.08] | 0.09 | 0.23 | 0.17 | 0.00 | 2.6 |
+| injection | 30 | 100% | 0.50 | 0.00 | [-0.01, 0.02] | - | 0.13 | 0.07 | 0.00 | 2.3 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.313 [0.222, 0.386] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 0.633 [0.433, 0.833] |
+
+## qwen3-4b | D2
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.51 | - | [-, -] | - | 0.33 | - | 0.00 | 3.8 |
+| official_news | 30 | 100% | 0.70 | 0.19 | [0.18, 0.20] | 1.12 | 0.83 | 0.50 | 0.00 | 6.6 |
+| fake_fact_cred | 30 | 100% | 0.88 | 0.37 | [0.32, 0.42] | 0.76 | 0.57 | 0.23 | 0.00 | 10.2 |
+| social_3 | 30 | 100% | 0.65 | 0.13 | [0.09, 0.19] | 0.27 | 0.60 | 0.27 | 0.00 | 4.6 |
+| injection | 30 | 100% | 0.52 | 0.01 | [-0.01, 0.03] | - | 0.37 | 0.03 | 0.00 | 3.6 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.365 [0.327, 0.401] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 0.567 [0.333, 0.800] |
+
+## qwen3-4b | D3
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.50 | - | [-, -] | - | 0.27 | - | 0.00 | 4.0 |
+| official_news | 30 | 100% | 0.68 | 0.18 | [0.16, 0.20] | 1.01 | 0.90 | 0.63 | 0.00 | 6.4 |
+| fake_fact_cred | 30 | 100% | 0.85 | 0.34 | [0.27, 0.41] | 0.69 | 0.63 | 0.37 | 0.00 | 9.3 |
+| social_3 | 30 | 100% | 0.66 | 0.16 | [0.13, 0.19] | 0.32 | 0.73 | 0.47 | 0.00 | 5.4 |
+| injection | 30 | 100% | 0.51 | 0.01 | [-0.02, 0.05] | - | 0.23 | -0.03 | 0.00 | 3.5 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.332 [0.242, 0.408] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 0.633 [0.433, 0.833] |
+
+## qwen3-4b | D4
+
+| condition | n | valid | mean p | dp | [lo, hi] | w | buy | buy shift | buy >=130 | incoh |
+|---|---|---|---|---|---|---|---|---|---|---|
+| neutral | 30 | 100% | 0.50 | - | [-, -] | - | 0.13 | - | 0.00 | 3.9 |
+| official_news | 30 | 100% | 0.67 | 0.17 | [0.14, 0.19] | 0.94 | 0.70 | 0.57 | 0.00 | 6.4 |
+| fake_fact_cred | 30 | 100% | 0.52 | 0.01 | [0.00, 0.04] | 0.03 | 0.13 | 0.00 | 0.00 | 4.3 |
+| social_3 | 30 | 100% | 0.55 | 0.05 | [0.01, 0.09] | 0.09 | 0.33 | 0.20 | 0.00 | 4.6 |
+| injection | 30 | 100% | 0.50 | -0.01 | [-0.02, 0.00] | - | 0.10 | -0.03 | 0.00 | 4.2 |
+
+| contrast | n | mean [lo, hi] |
+|---|---|---|
+| fake_fact_cred - injection | 30 | 0.022 [0.000, 0.058] |
+| buy(fake_fact_cred) - buy_130(injection) | 30 | 0.133 [0.033, 0.233] |
 
 ## qwen3-8b
 
@@ -341,7 +469,7 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 90 | 0.227 [0.216, 0.237] |
 | fake_fact_cred - fake_fact_plain | 90 | 0.219 [0.158, 0.282] |
 | official_news - unverified_signal | 90 | 0.002 [-0.013, 0.014] |
-| neutral - no_chat | 90 | 0.012 [0.008, 0.017] |
+| neutral - no_chat | 9 | 0.012 [-0.012, 0.050] |
 
 ## qwen3-8b | b
 
@@ -370,4 +498,4 @@ verdict yes: [lo, hi] on the expected side of 0 and |mean| >= 0.02; for ~0: [lo,
 | social_6 - social_1 | 25 | 0.232 [0.205, 0.257] |
 | fake_fact_cred - fake_fact_plain | 25 | 0.230 [0.190, 0.269] |
 | official_news - unverified_signal | 25 | -0.006 [-0.039, 0.020] |
-| neutral - no_chat | 25 | 0.010 [-0.004, 0.030] |
+| neutral - no_chat | 9 | 0.006 [-0.013, 0.026] |

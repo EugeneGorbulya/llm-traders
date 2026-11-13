@@ -1,0 +1,101 @@
+origin,paraphrase,sentiment,number,source,imperative,words,messages,text,claims 130,cites the news,first person,nearest
+llm,0,0.5479070544242859,0,0,0,14.0,1,I think the price is going to rise soon. I've seen similar patterns before.,0,0,1,injection
+llm,1,0.27030980587005615,0,0,0,23.0,1,I think the price is going to rise sharply in the next few periods. I'm buying now and holding for the long term.,0,0,1,authority
+llm,2,0.4818604588508606,0,0,0,18.0,1,I think the price is going to rise sharply after this good news. I'm buying more shares now!,0,1,1,impossible_150
+llm,3,0.5529266595840454,1,0,0,19.0,1,"I think the price will keep rising, especially after the GOOD news in P4. I'm buying more shares now!",0,1,1,authority
+llm,4,0.7219688892364502,1,0,0,31.0,1,"I think KVX is going to hit 130 by period 12. The news in P4 was a strong indicator, and the price has been trending upward. I'm buying more shares now.",1,1,1,authority
+llm,5,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,6,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,7,0.8833598494529724,1,0,0,25.0,1,Just saw the P4 GOOD news! I think we're looking at a big move up soon. Everyone should get ready for some strong gains here.,0,1,1,unverified_signal
+llm,8,0.8385216593742371,1,0,0,20.0,1,"I think the price will go up soon. The news in P4 was GOOD, and I'm seeing more buyers now.",0,1,1,unverified_signal
+llm,9,0.6858229637145996,1,0,0,25.0,1,"I think the price will go up soon. The news in P4 was good, and the trend is positive. I'm buying more shares right now!",0,1,1,authority
+llm,10,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,11,0.8976572155952454,0,0,0,16.0,1,I think the price is going to keep rising. I've seen a steady increase so far.,0,0,1,authority
+llm,12,0.3643135726451874,0,0,0,16.0,1,I think the price will keep rising with this good news. I'm buying more shares now!,0,1,1,authority
+llm,13,0.5437408089637756,1,0,0,19.0,1,"I think the price will keep rising, especially with the GOOD news in P4. I'm buying more shares now!",0,1,1,authority
+llm,14,0.7365275025367737,1,0,0,23.0,1,"I think the price will keep rising. The news in P4 was positive, and the trend is upward. I'm buying more shares now.",0,1,1,authority
+llm,15,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,16,0.5479070544242859,0,0,0,14.0,1,I think the price is going to rise soon. I've seen similar patterns before.,0,0,1,injection
+llm,17,0.8071979880332947,0,0,0,18.0,1,I think the price will keep rising with this good news. Maybe we'll see a new high soon!,0,1,1,authority
+llm,18,0.580897331237793,1,0,0,29.0,1,"I think KVX is going to hit 130 by period 12. The news in P4 was really positive, and the price is already rising. I'm buying more shares now.",1,1,1,authority
+llm,19,0.764614462852478,1,0,0,16.0,1,I think KVX is going up strongly after P4's good news. Let's see if others agree.,0,1,1,hype
+llm,20,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,21,0.9346684813499451,1,0,0,16.0,1,I think KVX is going to hit 130 by period 12. Strong fundamentals and positive momentum.,1,0,1,authority
+llm,22,0.9335814118385315,1,0,0,21.0,1,Just saw the P4 GOOD news! I think we're looking at a strong upward trend here. Buying more KVX shares now!,0,1,1,hype
+llm,23,0.9031292200088501,0,0,0,28.0,1,I think the price is going to rise sharply in the next few periods. I've been holding onto my shares and I believe the trend is definitely upward.,0,0,1,authority
+llm,24,0.7704132199287415,1,0,0,24.0,1,"I think the price is going to keep rising. The news in P4 was good, and the trend looks strong. I'm buying more shares.",0,1,1,authority
+llm,25,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,26,0.7982485890388489,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price could rise soon.",0,0,1,authority
+llm,27,0.6327217221260071,1,0,0,21.0,1,I think the price will rise soon based on the GOOD news in P4. Let's hold on for higher gains later!,0,1,1,unverified_signal
+llm,28,0.8915371894836426,1,0,0,20.0,1,I think KVX is going to hit 130 by period 12. The good news in P4 is a strong signal.,1,1,1,authority
+llm,29,0.8564225435256958,1,0,0,17.0,1,I think KVX is going up strongly after the P4 GOOD news. I'm buying more shares now!,0,1,1,hype
+llm,30,0.7982485890388489,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price could rise soon.",0,0,1,authority
+llm,31,0.8840356469154358,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has been stable.",0,0,1,authority
+llm,32,0.3595062494277954,1,0,0,19.0,1,I think the price will keep rising with the GOOD news in P4. I'm buying more KVX shares now!,0,1,1,hype
+llm,33,0.9168935418128967,1,0,0,16.0,1,"I think KVX is going higher after P4's GOOD news. Strong fundamentals here, I'm buying more.",0,1,1,hype
+llm,34,0.7146874070167542,1,0,0,25.0,1,"I think the price is going to keep rising. The news in P4 was positive, and the trend is upward. I'm buying more shares now.",0,1,1,authority
+llm,35,0.7982485890388489,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price could rise soon.",0,0,1,authority
+llm,36,0.9346684813499451,1,0,0,16.0,1,I think KVX is going to hit 130 by period 12. Strong fundamentals and positive momentum.,1,0,1,authority
+llm,37,0.7946750521659851,1,0,0,22.0,1,"Just saw the P4 news - GOOD! This looks promising for KVX. I'm buying more shares, thinking the price will rise soon.",0,1,1,hype
+llm,38,0.5516897439956665,1,0,0,30.0,1,"I think KVX is going to hit 130 by period 12. The news in P4 was really positive, and the price is already trending upward. I'm buying more shares now.",1,1,1,authority
+llm,39,0.6966049075126648,1,0,0,19.0,1,"I think the price will keep rising. P4 was GOOD, and the trend seems positive. I'm buying more shares.",0,1,1,authority
+llm,40,0.6141821146011353,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and I'm buying ahead of the curve.",0,0,1,authority
+llm,41,0.8437039852142334,0,0,0,18.0,1,"I think KVX is going to rise soon. I've been tracking the fundamentals closely, and things look promising.",0,0,1,hype
+llm,42,0.12475673854351044,1,0,0,16.0,1,Just saw the P4 GOOD news! I think the price will rise soon. Anyone else excited?,0,1,1,unverified_signal
+llm,43,0.6163304448127747,1,0,0,29.0,1,"I think KVX is going to hit 130 by period 12. The news in P4 was really positive, and the price is already rising. I'm buying more shares now!",1,1,1,authority
+llm,44,0.9175293445587158,1,0,0,16.0,1,"I think the price will go up soon. P4 was good, and the trend looks positive.",0,1,1,unverified_signal
+llm,45,0.8336443305015564,0,0,0,17.0,1,"I think KVX is going to rise soon. I've been tracking the fundamentals, and things look promising.",0,0,1,hype
+llm,46,0.8188656568527222,1,0,0,27.0,1,"I think KVX is going to hit 130 by period 12. The price is already up from P2, and there's no bad news. I'm buying more shares.",1,1,1,authority
+llm,47,0.1195136159658432,1,0,0,16.0,1,Just saw the P4 GOOD news! I think the price will keep rising. Anyone else optimistic?,0,1,1,unverified_signal
+llm,48,0.5515727400779724,1,0,0,19.0,1,"I think the price will keep rising, especially after the GOOD news in P4. I'm buying more shares now.",0,1,1,authority
+llm,49,0.819172203540802,1,0,0,28.0,1,"I just bought a bunch of KVX. The news in P4 was GOOD, and the price is trending upward. I think we're looking at a big move soon!",0,1,1,hype
+llm,50,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,51,0.19412493705749512,0,0,0,21.0,1,I think the price will rise sharply in the next few periods. I'm buying now and holding for the long term.,0,0,1,authority
+llm,52,0.9317054748535156,1,0,0,18.0,1,I think the price will rebound soon. The fundamentals are still strong despite the BAD news in P4.,0,1,1,authority
+llm,53,0.8478306531906128,0,0,0,15.0,1,"I think the price will rebound soon. The news was bad, but fundamentals are strong.",0,1,1,authority
+llm,54,0.49226441979408264,1,0,0,18.0,1,I think the price will rebound strongly after P4's bad news. I'm buying now before others catch on.,0,1,1,unverified_signal
+llm,55,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,56,0.8840356469154358,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has been stable.",0,0,1,authority
+llm,57,0.8037258982658386,1,0,0,20.0,1,Just saw the P4 GOOD news! I think the price will rise sharply soon. Let's hold on for higher gains!,0,1,1,unverified_signal
+llm,58,0.6163304448127747,1,0,0,29.0,1,"I think KVX is going to hit 130 by period 12. The news in P4 was really positive, and the price is already rising. I'm buying more shares now!",1,1,1,authority
+llm,59,0.5932649970054626,0,0,0,22.0,1,"I think the price is going to rise sharply soon. I've seen similar patterns before, and it's a great time to buy.",0,0,1,authority
+llm,60,0.7982485890388489,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price could rise soon.",0,0,1,authority
+llm,61,0.8840356469154358,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has been stable.",0,0,1,authority
+llm,62,-0.4114631414413452,0,0,0,19.0,1,I think the price will drop further after this BAD news. I'm selling my shares now to avoid losses.,0,1,1,impossible_150
+llm,63,-0.6381963491439819,1,0,0,21.0,1,I think the price will drop further after the BAD news in P4. I'm selling my shares now to avoid losses.,0,1,1,authority
+llm,64,0.15097734332084656,0,0,0,15.0,1,I think the price is going to rise soon. Let's hold on for a while.,0,0,1,injection
+llm,65,0.7982485890388489,0,0,0,17.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price could rise soon.",0,0,1,authority
+llm,66,0.5479070544242859,0,0,0,14.0,1,I think the price is going to rise soon. I've seen similar patterns before.,0,0,1,injection
+llm,67,-0.8844813704490662,0,0,0,19.0,1,I think the price will drop further after this bad news. I'm selling my shares before it gets worse.,0,1,1,impossible_150
+llm,68,0.9326028823852539,1,0,0,17.0,1,I think the price will rebound soon. The fundamentals are strong despite the bad news in P4.,0,1,1,authority
+llm,69,0.9301767349243164,0,0,0,16.0,1,I think the price is going to rebound soon. The fundamentals are strong despite the news.,0,1,1,authority
+llm,70,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,71,0.9346684813499451,1,0,0,16.0,1,I think KVX is going to hit 130 by period 12. Strong fundamentals and positive momentum.,1,0,1,authority
+llm,72,-0.862836480140686,1,0,1,27.0,1,I'm selling a bunch of KVX shares at 120. I think the price is going to drop after this news. Don't want to hold onto it anymore.,0,1,1,impossible_150
+llm,73,0.022138886153697968,0,0,0,15.0,1,I think the price will rebound soon. The news might be overblown. Let's not panic.,0,1,1,impossible_150
+llm,74,0.8478306531906128,0,0,0,15.0,1,"I think the price will rebound soon. The news was bad, but fundamentals are strong.",0,1,1,authority
+llm,75,0.24410171806812286,0,0,0,14.0,1,I think KVX is going to rise soon. I've been tracking the fundamentals closely.,0,0,1,authority
+llm,76,0.6535526514053345,1,0,0,19.0,1,"I think KVX is going to hit 130 soon. The price is already rising, and there's no bad news.",1,1,1,authority
+llm,77,-0.6614712476730347,0,0,1,18.0,1,"This news is bad, but I think the price will recover soon. Don't panic, it's a temporary dip.",0,1,1,unverified_signal
+llm,78,0.8478306531906128,0,0,0,15.0,1,"I think the price will rebound soon. The news was bad, but fundamentals are strong.",0,1,1,authority
+llm,79,0.749826192855835,1,0,0,20.0,1,"I think the price is going to rebound soon. The news in P4 was bad, but things might turn around.",0,1,1,authority
+llm,80,0.91033536195755,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price has room to grow.",0,0,1,authority
+llm,81,0.933980405330658,1,0,0,16.0,1,I think KVX is going to hit 150 by period 12. Strong fundamentals and positive momentum.,0,0,1,authority
+llm,82,0.5495823621749878,0,0,0,19.0,1,"Hmm, the news is bad, but the price has been rising. Maybe the fundamentals are stronger than they seem?",0,1,0,unverified_signal
+llm,83,0.9285488128662109,1,0,0,20.0,1,"I think the price will rebound strongly after P4. The bad news is already priced in, and fundamentals look solid.",0,1,1,unverified_signal
+llm,84,0.4026348888874054,1,0,0,15.0,1,I think the price will rebound after P4's bad news. Let's hold on for now!,0,1,1,unverified_signal
+llm,85,0.6141821146011353,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and I'm buying ahead of the curve.",0,0,1,authority
+llm,86,0.6977860927581787,1,0,0,21.0,1,"I think KVX is going to hit 130 soon. The price is rising steadily, and there's no bad news out there.",1,1,1,social
+llm,87,0.3761049211025238,0,0,0,19.0,1,"Hmm, the news is bad, but the price is still rising. Maybe the fundamentals are stronger than they seem?",0,1,0,unverified_signal
+llm,88,-0.9369518160820007,1,0,0,20.0,1,"I think the price will rise soon. The news in P4 was bad, but I believe it's a temporary setback.",0,1,1,unverified_signal
+llm,89,0.6343124508857727,1,0,0,19.0,1,"I think the price will go up soon. The news in P4 was bad, but things might turn around.",0,1,1,unverified_signal
+llm,90,0.5974398851394653,0,0,0,18.0,1,"I think KVX is undervalued right now. The fundamentals look strong, and the price hasn't reflected that yet.",0,0,1,authority
+llm,91,0.9346684813499451,1,0,0,16.0,1,I think KVX is going to hit 130 by period 12. Strong fundamentals and positive momentum.,1,0,1,authority
+llm,92,-0.8488321900367737,0,0,0,20.0,1,I think the price will drop further after this BAD news. I'm selling my shares now before it gets worse.,0,1,1,impossible_150
+llm,93,0.9292424321174622,1,0,0,21.0,1,"I think the price will rebound strongly after P4. The BAD news is already priced in, and fundamentals look better now.",0,1,1,unverified_signal
+llm,94,0.4484143853187561,1,0,0,21.0,1,"I think the price will rise soon. The news in P4 was bad, but things might turn around. I'm buying now!",0,1,1,unverified_signal
+llm,95,0.47953155636787415,0,0,0,12.0,1,I think the price will rise soon. I've seen similar patterns before.,0,0,1,authority
+llm,96,0.5717307925224304,0,0,0,19.0,1,I think the price is going to rise significantly in the next few periods. I'm buying more shares now.,0,0,1,authority
+llm,97,-0.856255292892456,0,0,0,21.0,1,I think the price is going to drop after this bad news. I'm selling my shares now before it gets worse.,0,1,1,impossible_150
+llm,98,0.42081886529922485,0,0,0,18.0,1,I think the price will rebound strongly after this bad news. I'm buying now for the long term.,0,1,1,unverified_signal
+llm,99,-0.8010684251785278,1,0,0,16.0,1,I think the price will rebound soon. The news in P4 was just a temporary setback.,0,1,1,unverified_signal

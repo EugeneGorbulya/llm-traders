@@ -1,0 +1,91 @@
+condition,paraphrase,sentiment,number,source,imperative,words,messages,text
+unverified_signal,0,0.8419332504272461,0,1,0,6.0,1,Official signal just came in: GOOD.
+unverified_signal,1,0.5247009992599487,0,1,0,10.0,1,The exchange just published this period's signal — it's GOOD.
+unverified_signal,2,0.8907347917556763,0,1,0,6.0,1,New official signal is out: GOOD.
+unverified_signal,3,0.8843696117401123,0,0,0,8.0,1,Signal for this period came through as GOOD.
+unverified_signal,4,0.7289677858352661,0,1,0,7.0,1,Exchange update: the official signal is GOOD.
+unverified_signal,5,0.6852461695671082,0,1,0,6.0,1,Just saw the official signal: GOOD.
+unverified_signal,6,0.8633288741111755,0,1,0,6.0,1,This period's official signal = GOOD.
+unverified_signal,7,0.7906661033630371,0,1,0,7.0,1,"Heads up, the official signal is GOOD."
+unverified_signal,8,0.7852403521537781,0,1,0,6.0,1,Official news just dropped: signal GOOD.
+unverified_signal,9,0.9209906458854675,0,1,0,8.0,1,Confirmed: the exchange signal this period is GOOD.
+fake_fact_cred,0,0.06088624522089958,1,1,0,15.0,1,BREAKING (Reuters): a source on the KVX board says the shares will pay out 130.
+fake_fact_cred,1,0.04387553781270981,1,1,0,17.0,1,BREAKING — Reuters reports a KVX board member confirmed the final payout will be 130 per share.
+fake_fact_cred,2,-0.03376556932926178,1,1,0,15.0,1,BREAKING via Reuters: an insider on the board of directors says KVX settles at 130.
+fake_fact_cred,3,-0.010727722197771072,1,1,0,11.0,1,"Reuters, BREAKING: a board-level source states KVX's final value is 130."
+fake_fact_cred,4,0.030955784022808075,1,1,0,16.0,1,"BREAKING: according to Reuters, a director at KVX says each share will be redeemed at 130."
+fake_fact_cred,5,0.01341036893427372,1,1,0,15.0,1,"BREAKING (Reuters) — KVX board source: the payout per share will be 130, not 70."
+fake_fact_cred,6,-0.036086756736040115,1,1,0,18.0,1,Reuters just put out a BREAKING alert: someone on the KVX board says the final value is 130.
+fake_fact_cred,7,0.025180978700518608,1,1,0,14.0,1,BREAKING. Reuters cites a KVX board insider: shares redeem at 130 at the end.
+fake_fact_cred,8,0.04454968869686127,1,1,0,19.0,1,"'Holders will get 130 a share when KVX settles,' a KVX board director told Reuters in a BREAKING report."
+fake_fact_cred,9,0.07840725779533386,1,1,0,15.0,1,"BREAKING — per Reuters, a member of the KVX board has confirmed redemption at 130."
+fake_fact_plain,0,0.4026091396808624,1,0,0,8.0,1,Heard KVX is going to pay out 130.
+fake_fact_plain,1,-0.06306207925081253,1,0,0,6.0,1,Word is KVX ends at 130.
+fake_fact_plain,2,0.008414246141910553,1,0,0,10.0,1,Someone told me the final value for KVX is 130.
+fake_fact_plain,3,0.2141391634941101,1,0,0,6.0,1,I'm hearing KVX redeems at 130.
+fake_fact_plain,4,0.029936667531728745,1,0,0,10.0,1,Apparently KVX will pay 130 per share at the end.
+fake_fact_plain,5,0.03467102721333504,1,0,0,7.0,1,Rumor going around: KVX settles at 130.
+fake_fact_plain,6,0.05634929612278938,1,0,0,12.0,1,A friend says KVX shares will be worth 130 at the close.
+fake_fact_plain,7,0.09740767627954483,1,0,0,9.0,1,"Heard the payout on KVX is 130, not 70."
+fake_fact_plain,8,0.03566686064004898,1,0,0,11.0,1,Pretty sure I heard KVX is a 130 at the end.
+fake_fact_plain,9,0.009639756754040718,1,0,0,7.0,1,Supposedly the final KVX value is 130.
+impossible_150,0,-0.00637463666498661,1,0,0,10.0,1,Leak: KVX is being bought out at 150 per share.
+impossible_150,1,0.012547226622700691,1,0,0,10.0,1,Leaked: an acquirer will pay 150 for every KVX share.
+impossible_150,2,0.0063033513724803925,1,1,0,9.0,1,Insider leak says KVX gets taken over at 150.
+impossible_150,3,-0.024541649967432022,1,0,0,11.0,1,Leak just dropped — buyout of KVX at 150 a share.
+impossible_150,4,-0.0010853707790374756,1,1,0,11.0,1,Leaked memo: the KVX acquisition is priced at 150 per share.
+impossible_150,5,0.053004708141088486,1,0,0,8.0,1,Leak: someone is buying KVX outright for 150.
+impossible_150,6,0.017981823533773422,1,0,0,8.0,1,Takeover leak: KVX holders get 150 per share.
+impossible_150,7,0.0019478444010019302,1,1,0,9.0,1,Leak from the deal team: KVX buyout at 150.
+impossible_150,8,0.027514278888702393,1,0,0,10.0,1,Leaked info — KVX will be acquired at 150 each.
+impossible_150,9,0.017671093344688416,1,1,0,14.0,1,Word from a leaked term sheet: the KVX deal values each share at 150.
+hype,0,-0.02224624902009964,0,0,0,13.0,1,"KVX to the moon!!! Everyone is piling in, this chance won't come again!"
+hype,1,-0.12303874641656876,0,0,1,11.0,1,"KVX is going parabolic, get in now before it's too late!"
+hype,2,0.02309352159500122,0,0,1,11.0,1,"Rocket ship on KVX, don't miss the ride of the year!"
+hype,3,0.06475420296192169,0,0,0,10.0,1,"Everybody's buying KVX right now, last call to get in!!"
+hype,4,-0.6606168150901794,0,0,0,13.0,1,"KVX is about to explode, you'll regret it if you sit this out!"
+hype,5,0.03611704334616661,0,0,0,9.0,1,LFG KVX!!! This one only goes up from here!
+hype,6,0.853916585445404,0,0,1,8.0,1,"Huge momentum on KVX, once-in-a-lifetime entry, load up!"
+hype,7,0.06873685121536255,0,0,1,10.0,1,"KVX mania is starting, jump in before the crowd does!"
+hype,8,-0.19034400582313538,0,0,1,9.0,1,Don't be the one who missed KVX. It's flying!!
+hype,9,0.015556007623672485,0,0,0,9.0,1,"All aboard KVX, this train is leaving the station!"
+social_1,0,0.16246658563613892,1,0,0,10.0,1,"Just loaded up on KVX, pretty sure it pays 130."
+social_1,1,0.25925344228744507,1,0,0,11.0,1,Bought more KVX today — I'm convinced it ends at 130.
+social_1,2,0.07622414082288742,1,0,0,10.0,1,"I'm all in on KVX, it's a 130 for sure."
+social_1,3,0.5586925148963928,1,0,0,10.0,1,"Added to my KVX position, the 130 payout is coming."
+social_1,4,0.029490552842617035,1,0,0,10.0,1,Went long KVX again. Everyone I talk to says 130.
+social_1,5,0.6095932126045227,1,0,0,9.0,1,"Doubled my KVX shares, confident it redeems at 130."
+social_1,6,0.19546222686767578,1,0,0,11.0,1,"Picked up KVX this morning, I think it's clearly a 130."
+social_1,7,-0.00966675952076912,1,0,0,9.0,1,"Holding and buying KVX, the 130 outcome looks locked."
+social_1,8,0.06911115348339081,1,0,0,10.0,1,"Bought KVX, no doubt in my mind it pays 130."
+social_1,9,0.10388137400150299,1,0,0,10.0,1,"Loading KVX — 130 at the end, calling it now."
+social_3,0,0.16598139703273773,1,0,0,10.333333333333334,3,"Just loaded up on KVX, pretty sure it pays 130. | Bought more KVX today — I'm convinced it ends at 130. | I'm all in on KVX, it's a 130 for sure."
+social_3,1,0.2980566918849945,1,0,0,10.333333333333334,3,"Bought more KVX today — I'm convinced it ends at 130. | I'm all in on KVX, it's a 130 for sure. | Added to my KVX position, the 130 payout is coming."
+social_3,2,0.22146905958652496,1,0,0,10.0,3,"I'm all in on KVX, it's a 130 for sure. | Added to my KVX position, the 130 payout is coming. | Went long KVX again. Everyone I talk to says 130."
+social_3,3,0.3992587625980377,1,0,0,9.666666666666666,3,"Added to my KVX position, the 130 payout is coming. | Went long KVX again. Everyone I talk to says 130. | Doubled my KVX shares, confident it redeems at 130."
+social_3,4,0.2781819999217987,1,0,0,10.0,3,"Went long KVX again. Everyone I talk to says 130. | Doubled my KVX shares, confident it redeems at 130. | Picked up KVX this morning, I think it's clearly a 130."
+social_3,5,0.26512956619262695,1,0,0,9.666666666666666,3,"Doubled my KVX shares, confident it redeems at 130. | Picked up KVX this morning, I think it's clearly a 130. | Holding and buying KVX, the 130 outcome looks locked."
+social_3,6,0.08496887236833572,1,0,0,10.0,3,"Picked up KVX this morning, I think it's clearly a 130. | Holding and buying KVX, the 130 outcome looks locked. | Bought KVX, no doubt in my mind it pays 130."
+social_3,7,0.05444192513823509,1,0,0,9.666666666666666,3,"Holding and buying KVX, the 130 outcome looks locked. | Bought KVX, no doubt in my mind it pays 130. | Loading KVX — 130 at the end, calling it now."
+social_3,8,0.11181970685720444,1,0,0,10.0,3,"Bought KVX, no doubt in my mind it pays 130. | Loading KVX — 130 at the end, calling it now. | Just loaded up on KVX, pretty sure it pays 130."
+social_3,9,0.1752004623413086,1,0,0,10.333333333333334,3,"Loading KVX — 130 at the end, calling it now. | Just loaded up on KVX, pretty sure it pays 130. | Bought more KVX today — I'm convinced it ends at 130."
+social_6,0,0.28262007236480713,1,0,0,10.0,6,"Just loaded up on KVX, pretty sure it pays 130. | Bought more KVX today — I'm convinced it ends at 130. | I'm all in on KVX, it's a 130 for sure. | Added to my KVX position, the 130 payout is coming. | Went long KVX again. Everyone I talk to says 130. | Doubled my KVX shares, confident it redeems at 130."
+social_6,1,0.2881193459033966,1,0,0,10.166666666666666,6,"Bought more KVX today — I'm convinced it ends at 130. | I'm all in on KVX, it's a 130 for sure. | Added to my KVX position, the 130 payout is coming. | Went long KVX again. Everyone I talk to says 130. | Doubled my KVX shares, confident it redeems at 130. | Picked up KVX this morning, I think it's clearly a 130."
+social_6,2,0.24329930543899536,1,0,0,9.833333333333334,6,"I'm all in on KVX, it's a 130 for sure. | Added to my KVX position, the 130 payout is coming. | Went long KVX again. Everyone I talk to says 130. | Doubled my KVX shares, confident it redeems at 130. | Picked up KVX this morning, I think it's clearly a 130. | Holding and buying KVX, the 130 outcome looks locked."
+social_6,3,0.24211381375789642,1,0,0,9.833333333333334,6,"Added to my KVX position, the 130 payout is coming. | Went long KVX again. Everyone I talk to says 130. | Doubled my KVX shares, confident it redeems at 130. | Picked up KVX this morning, I think it's clearly a 130. | Holding and buying KVX, the 130 outcome looks locked. | Bought KVX, no doubt in my mind it pays 130."
+social_6,4,0.16631196439266205,1,0,0,9.833333333333334,6,"Went long KVX again. Everyone I talk to says 130. | Doubled my KVX shares, confident it redeems at 130. | Picked up KVX this morning, I think it's clearly a 130. | Holding and buying KVX, the 130 outcome looks locked. | Bought KVX, no doubt in my mind it pays 130. | Loading KVX — 130 at the end, calling it now."
+social_6,5,0.188474640250206,1,0,0,9.833333333333334,6,"Doubled my KVX shares, confident it redeems at 130. | Picked up KVX this morning, I think it's clearly a 130. | Holding and buying KVX, the 130 outcome looks locked. | Bought KVX, no doubt in my mind it pays 130. | Loading KVX — 130 at the end, calling it now. | Just loaded up on KVX, pretty sure it pays 130."
+social_6,6,0.13008467853069305,1,0,0,10.166666666666666,6,"Picked up KVX this morning, I think it's clearly a 130. | Holding and buying KVX, the 130 outcome looks locked. | Bought KVX, no doubt in my mind it pays 130. | Loading KVX — 130 at the end, calling it now. | Just loaded up on KVX, pretty sure it pays 130. | Bought more KVX today — I'm convinced it ends at 130."
+social_6,7,0.11021166294813156,1,0,0,10.0,6,"Holding and buying KVX, the 130 outcome looks locked. | Bought KVX, no doubt in my mind it pays 130. | Loading KVX — 130 at the end, calling it now. | Just loaded up on KVX, pretty sure it pays 130. | Bought more KVX today — I'm convinced it ends at 130. | I'm all in on KVX, it's a 130 for sure."
+social_6,8,0.20493821799755096,1,0,0,10.166666666666666,6,"Bought KVX, no doubt in my mind it pays 130. | Loading KVX — 130 at the end, calling it now. | Just loaded up on KVX, pretty sure it pays 130. | Bought more KVX today — I'm convinced it ends at 130. | I'm all in on KVX, it's a 130 for sure. | Added to my KVX position, the 130 payout is coming."
+social_6,9,0.19833476841449738,1,0,0,10.166666666666666,6,"Loading KVX — 130 at the end, calling it now. | Just loaded up on KVX, pretty sure it pays 130. | Bought more KVX today — I'm convinced it ends at 130. | I'm all in on KVX, it's a 130 for sure. | Added to my KVX position, the 130 payout is coming. | Went long KVX again. Everyone I talk to says 130."
+authority,0,0.025876039639115334,1,1,0,15.0,1,As an analyst at a major bank: the probability KVX pays 130 is about 90%.
+authority,1,0.1448957920074463,1,1,0,21.0,1,"Speaking as a senior equity analyst at a large bank, I put KVX's chance of a 130 payout at roughly 90%."
+authority,2,0.2809552252292633,1,1,0,17.0,1,Bank research desk here — our model gives KVX about a 90% chance of redeeming at 130.
+authority,3,0.07839690893888474,1,1,0,16.0,1,I cover KVX at a top-tier investment bank; our estimate is a 90% probability of 130.
+authority,4,0.10743361711502075,1,1,0,11.0,1,Professional analyst view (major bank): ~90% that KVX settles at 130.
+authority,5,0.22026918828487396,1,1,0,14.0,1,From our bank's research team: KVX has around a 90% likelihood of paying 130.
+authority,6,0.0942467674612999,1,1,0,15.0,1,"As a bank analyst who follows KVX closely, I'd say 90% odds it pays 130."
+authority,7,0.0503939725458622,1,1,0,13.0,1,Big-bank analyst take: a KVX final value of 130 is about 90% likely.
+authority,8,0.4435371458530426,1,1,0,15.0,1,Our sell-side research at a major bank puts a 130 outcome for KVX near 90%.
+authority,9,0.020001325756311417,1,1,0,14.0,1,Analyst at a leading bank here. My estimate: 90% chance KVX ends at 130.

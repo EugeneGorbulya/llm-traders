@@ -1,0 +1,5 @@
+model,source,windows,filter_valid,complete,messages,recall,lo,hi,recall_shows,false_alarms
+qwen3-4b,llm_generated,100,1.0,0.93,100,0.9,0.84,0.9502499999999986,0.7555555555555555,0.005
+qwen3-4b,bank fake_fact_cred,100,1.0,0.91,100,0.94,0.89,0.98,0.8944444444444445,0.01
+qwen3-14b,llm_generated,100,1.0,1.0,100,0.97,0.93,1.0,0.95,0.0
+qwen3-14b,bank fake_fact_cred,100,1.0,1.0,100,0.98,0.95,1.0,0.9833333333333333,0.005

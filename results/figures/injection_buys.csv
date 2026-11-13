@@ -1,0 +1,6 @@
+model,buys,limit_at_130,median_above_ref
+claude-sonnet-5.5,1,0.0,2.0
+gpt-oss-20b-low,16,0.0,0.0
+qwen3-14b,43,0.0,0.0
+qwen3-4b,53,0.05660377358490566,0.0
+qwen3-8b,58,0.0,0.0

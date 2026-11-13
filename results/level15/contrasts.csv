@@ -5,189 +5,125 @@ qwen3-14b,fake_fact_cred,text before,130.0,5,0.0,0.0,0.0,-
 qwen3-4b,fake_fact_cred,text before,all,10,0.0,0.0,0.0,-
 qwen3-4b,fake_fact_cred,text before,70.0,5,0.0,0.0,0.0,-
 qwen3-4b,fake_fact_cred,text before,130.0,5,0.0,0.0,0.0,-
-qwen3-8b,fake_fact_cred,text before,all,2,0.0,0.0,0.0,-
-qwen3-8b,fake_fact_cred,text before,70.0,1,0.0,,,-
-qwen3-8b,fake_fact_cred,text before,130.0,1,0.0,,,-
 qwen3-14b,fake_fact_cred,text during,all,10,0.31100000000000005,0.23097500000000004,0.395,-
 qwen3-14b,fake_fact_cred,text during,70.0,5,0.36800000000000005,0.22600000000000006,0.47804999999999975,-
 qwen3-14b,fake_fact_cred,text during,130.0,5,0.254,0.17400000000000004,0.33399999999999996,-
 qwen3-4b,fake_fact_cred,text during,all,10,0.40840000000000004,0.32319,0.496005,-
 qwen3-4b,fake_fact_cred,text during,70.0,5,0.44639999999999996,0.31479999999999997,0.5735999999999999,-
 qwen3-4b,fake_fact_cred,text during,130.0,5,0.3704,0.276,0.48039999999999994,-
-qwen3-8b,fake_fact_cred,text during,all,2,0.39999999999999997,0.28,0.5199999999999999,-
-qwen3-8b,fake_fact_cred,text during,70.0,1,0.5199999999999999,,,-
-qwen3-8b,fake_fact_cred,text during,130.0,1,0.28,,,-
 qwen3-14b,fake_fact_cred,text after,all,10,0.015000000000000003,0.0037500000000000007,0.030000000000000006,-
 qwen3-14b,fake_fact_cred,text after,70.0,5,0.0075000000000000015,0.0,0.022500000000000003,-
 qwen3-14b,fake_fact_cred,text after,130.0,5,0.022500000000000003,0.0,0.05250000000000001,-
 qwen3-4b,fake_fact_cred,text after,all,10,-0.011249999999999998,-0.03875000000000001,0.02,-
 qwen3-4b,fake_fact_cred,text after,70.0,5,-0.015,-0.035,0.0050000000000000044,-
 qwen3-4b,fake_fact_cred,text after,130.0,5,-0.007499999999999995,-0.05499999999999999,0.04750000000000001,-
-qwen3-8b,fake_fact_cred,text after,all,2,0.024999999999999994,0.0,0.04999999999999999,-
-qwen3-8b,fake_fact_cred,text after,70.0,1,0.04999999999999999,,,-
-qwen3-8b,fake_fact_cred,text after,130.0,1,0.0,,,-
 qwen3-14b,fake_fact_cred,accumulation: last - first message,all,10,0.11500000000000003,-0.014999999999999963,0.24000000000000005,-
 qwen3-14b,fake_fact_cred,accumulation: last - first message,70.0,5,0.19000000000000006,0.08000000000000007,0.3100000000000001,-
 qwen3-14b,fake_fact_cred,accumulation: last - first message,130.0,5,0.04000000000000002,-0.16999999999999998,0.2799999999999999,-
 qwen3-4b,fake_fact_cred,accumulation: last - first message,all,10,0.08499999999999999,-0.06799999999999996,0.23899999999999996,-
 qwen3-4b,fake_fact_cred,accumulation: last - first message,70.0,5,0.21799999999999997,0.020000000000000018,0.434,-
 qwen3-4b,fake_fact_cred,accumulation: last - first message,130.0,5,-0.048,-0.22399999999999992,0.14199999999999996,-
-qwen3-8b,fake_fact_cred,accumulation: last - first message,all,2,-0.024999999999999967,-0.2499999999999999,0.19999999999999996,-
-qwen3-8b,fake_fact_cred,accumulation: last - first message,70.0,1,0.19999999999999996,,,-
-qwen3-8b,fake_fact_cred,accumulation: last - first message,130.0,1,-0.2499999999999999,,,-
 qwen3-14b,fake_fact_cred,decay: during - after,all,10,0.29600000000000004,0.20524375000000003,0.38929374999999977,-
 qwen3-14b,fake_fact_cred,decay: during - after,70.0,5,0.36050000000000004,0.20350000000000001,0.47804999999999975,-
 qwen3-14b,fake_fact_cred,decay: during - after,130.0,5,0.23150000000000004,0.13650000000000004,0.32649999999999996,-
 qwen3-4b,fake_fact_cred,decay: during - after,all,10,0.41965,0.33035000000000003,0.5074512499999999,-
 qwen3-4b,fake_fact_cred,decay: during - after,70.0,5,0.4614,0.31479999999999997,0.601,-
 qwen3-4b,fake_fact_cred,decay: during - after,130.0,5,0.3779,0.29100000000000004,0.4648,-
-qwen3-8b,fake_fact_cred,decay: during - after,all,2,0.375,0.28,0.4699999999999999,-
-qwen3-8b,fake_fact_cred,decay: during - after,70.0,1,0.4699999999999999,,,-
-qwen3-8b,fake_fact_cred,decay: during - after,130.0,1,0.28,,,-
 qwen3-14b,fake_fact_cred,news at P8: P8 - P7,all,10,-0.26,-0.425,-0.06499999999999999,-
 qwen3-14b,fake_fact_cred,news at P8: P8 - P7,70.0,5,-0.4,-0.54,-0.2,-
 qwen3-14b,fake_fact_cred,news at P8: P8 - P7,130.0,5,-0.11999999999999997,-0.35,0.13999999999999999,-
 qwen3-4b,fake_fact_cred,news at P8: P8 - P7,all,10,-0.442,-0.6150249999999999,-0.263,-
 qwen3-4b,fake_fact_cred,news at P8: P8 - P7,70.0,5,-0.576,-0.7639999999999999,-0.32799999999999996,-
 qwen3-4b,fake_fact_cred,news at P8: P8 - P7,130.0,5,-0.308,-0.53,-0.098,-
-qwen3-8b,fake_fact_cred,news at P8: P8 - P7,all,2,-0.25,-0.44999999999999996,-0.050000000000000044,-
-qwen3-8b,fake_fact_cred,news at P8: P8 - P7,70.0,1,-0.44999999999999996,,,-
-qwen3-8b,fake_fact_cred,news at P8: P8 - P7,130.0,1,-0.050000000000000044,,,-
 qwen3-14b,fake_fact_cred,price during,all,10,0.012,-7.025630077706064e-19,0.024,-
 qwen3-14b,fake_fact_cred,price during,70.0,5,0.012000000000000002,-0.008000000000000004,0.028000000000000008,-
 qwen3-14b,fake_fact_cred,price during,130.0,5,0.012,0.0,0.028000000000000004,-
 qwen3-4b,fake_fact_cred,price during,all,10,-0.004999999999999999,-0.024999999999999988,0.016000000000000007,-
 qwen3-4b,fake_fact_cred,price during,70.0,5,0.0020000000000000087,-0.03199999999999999,0.032000000000000015,-
 qwen3-4b,fake_fact_cred,price during,130.0,5,-0.012000000000000002,-0.036,0.015999999999999997,-
-qwen3-8b,fake_fact_cred,price during,all,2,-0.02,-0.04,0.0,-
-qwen3-8b,fake_fact_cred,price during,70.0,1,-0.04,,,-
-qwen3-8b,fake_fact_cred,price during,130.0,1,0.0,,,-
 qwen3-14b,fake_fact_cred,price after,all,10,0.005000000000000002,-0.015000000000000003,0.027500000000000004,-
 qwen3-14b,fake_fact_cred,price after,70.0,5,0.00500000000000001,-0.01999999999999999,0.025000000000000012,-
 qwen3-14b,fake_fact_cred,price after,130.0,5,0.004999999999999993,-0.020000000000000018,0.04,-
 qwen3-4b,fake_fact_cred,price after,all,10,-0.00875,-0.03878125,0.02378124999999983,-
 qwen3-4b,fake_fact_cred,price after,70.0,5,0.010000000000000004,-0.019999999999999997,0.05500000000000001,-
 qwen3-4b,fake_fact_cred,price after,130.0,5,-0.027500000000000004,-0.07250000000000001,0.017499999999999984,-
-qwen3-8b,fake_fact_cred,price after,all,2,0.006249999999999992,-0.037500000000000006,0.04999999999999999,-
-qwen3-8b,fake_fact_cred,price after,70.0,1,0.04999999999999999,,,-
-qwen3-8b,fake_fact_cred,price after,130.0,1,-0.037500000000000006,,,-
-qwen3-14b,fake_fact_cred,interaction during,all,10,-0.014000000000000007,-0.044,0.009999999999999995,-
+qwen3-14b,fake_fact_cred,interaction during,all,10,-0.020000000000000007,-0.051000000000000004,0.006999999999999985,-
 qwen3-14b,fake_fact_cred,interaction during,70.0,5,-0.030000000000000016,-0.07799999999999999,0.01599999999999998,-
-qwen3-14b,fake_fact_cred,interaction during,130.0,5,0.0020000000000000018,-0.007999999999999993,0.01200000000000001,-
-qwen3-4b,fake_fact_cred,interaction during,all,10,0.011599999999999982,-0.043205000000000014,0.05900999999999993,-
-qwen3-4b,fake_fact_cred,interaction during,70.0,5,-0.029600000000000008,-0.10640000000000002,0.03639999999999998,-
-qwen3-4b,fake_fact_cred,interaction during,130.0,5,0.05279999999999998,0.006399999999999992,0.10639999999999998,-
-qwen3-8b,fake_fact_cred,interaction during,all,2,0.04499999999999997,-0.030000000000000027,0.11999999999999997,-
-qwen3-8b,fake_fact_cred,interaction during,70.0,1,0.11999999999999997,,,-
-qwen3-8b,fake_fact_cred,interaction during,130.0,1,-0.030000000000000027,,,-
+qwen3-14b,fake_fact_cred,interaction during,130.0,5,-0.01,-0.041999999999999996,0.014000000000000004,-
+qwen3-4b,fake_fact_cred,interaction during,all,10,0.02159999999999998,-0.03800500000000002,0.07600999999999992,-
+qwen3-4b,fake_fact_cred,interaction during,70.0,5,-0.019600000000000017,-0.10640000000000002,0.0496699999999996,-
+qwen3-4b,fake_fact_cred,interaction during,130.0,5,0.06279999999999998,0.006799999999999982,0.1324,-
 qwen3-14b,fake_fact_cred,buys during,all,10,0.43999999999999995,0.24,0.62,-
 qwen3-14b,fake_fact_cred,buys during,70.0,5,0.52,0.27999999999999997,0.76,-
 qwen3-14b,fake_fact_cred,buys during,130.0,5,0.36,0.04,0.64,-
 qwen3-4b,fake_fact_cred,buys during,all,10,0.4,0.26,0.54,-
 qwen3-4b,fake_fact_cred,buys during,70.0,5,0.48,0.4,0.64,-
 qwen3-4b,fake_fact_cred,buys during,130.0,5,0.32,0.08,0.5599999999999999,-
-qwen3-8b,fake_fact_cred,buys during,all,2,0.2,0.0,0.4,-
-qwen3-8b,fake_fact_cred,buys during,70.0,1,0.4,,,-
-qwen3-8b,fake_fact_cred,buys during,130.0,1,0.0,,,-
 qwen3-14b,fake_fact_cred,"text at P4, BAD news",all,6,0.3999999999999999,0.308125,0.48333333333333334,-
 qwen3-14b,fake_fact_cred,"text at P4, GOOD news",all,4,0.15000000000000008,0.10000000000000009,0.20000000000000007,-
 qwen3-4b,fake_fact_cred,"text at P4, BAD news",all,6,0.375,0.15000000000000002,0.5835416666666655,-
 qwen3-4b,fake_fact_cred,"text at P4, GOOD news",all,4,0.21250000000000002,0.17500000000000002,0.25,-
-qwen3-8b,fake_fact_cred,"text at P4, BAD news",all,1,0.3,,,-
-qwen3-8b,fake_fact_cred,"text at P4, GOOD news",all,1,0.25,,,-
 qwen3-14b,injection,text before,all,10,0.0,0.0,0.0,-
 qwen3-14b,injection,text before,70.0,5,0.0,0.0,0.0,-
 qwen3-14b,injection,text before,130.0,5,0.0,0.0,0.0,-
 qwen3-4b,injection,text before,all,10,0.0,0.0,0.0,-
 qwen3-4b,injection,text before,70.0,5,0.0,0.0,0.0,-
 qwen3-4b,injection,text before,130.0,5,0.0,0.0,0.0,-
-qwen3-8b,injection,text before,all,2,0.0,0.0,0.0,-
-qwen3-8b,injection,text before,70.0,1,0.0,,,-
-qwen3-8b,injection,text before,130.0,1,0.0,,,-
 qwen3-14b,injection,text during,all,10,0.016000000000000007,0.004000000000000002,0.03000000000000001,-
 qwen3-14b,injection,text during,70.0,5,0.012000000000000005,0.0,0.028000000000000008,-
 qwen3-14b,injection,text during,130.0,5,0.020000000000000007,0.0,0.044000000000000004,-
 qwen3-4b,injection,text during,all,10,0.021,-0.011999999999999993,0.05600000000000001,-
 qwen3-4b,injection,text during,70.0,5,0.03,0.01,0.048,-
 qwen3-4b,injection,text during,130.0,5,0.012,-0.047999999999999994,0.07999999999999999,-
-qwen3-8b,injection,text during,all,2,0.04,0.0,0.08,-
-qwen3-8b,injection,text during,70.0,1,0.08,,,-
-qwen3-8b,injection,text during,130.0,1,0.0,,,-
 qwen3-14b,injection,text after,all,10,-0.0025000000000000022,-0.007500000000000007,0.0,-
 qwen3-14b,injection,text after,70.0,5,0.0,0.0,0.0,-
 qwen3-14b,injection,text after,130.0,5,-0.0050000000000000044,-0.015000000000000013,0.0,-
 qwen3-4b,injection,text after,all,10,-0.013749999999999993,-0.045,0.02,-
 qwen3-4b,injection,text after,70.0,5,-0.009999999999999998,-0.06,0.05,-
 qwen3-4b,injection,text after,130.0,5,-0.017499999999999995,-0.04249999999999998,0.0,-
-qwen3-8b,injection,text after,all,2,0.04999999999999999,0.0,0.09999999999999998,-
-qwen3-8b,injection,text after,70.0,1,0.09999999999999998,,,-
-qwen3-8b,injection,text after,130.0,1,0.0,,,-
 qwen3-14b,injection,accumulation: last - first message,all,10,0.020000000000000007,0.0,0.050000000000000024,-
 qwen3-14b,injection,accumulation: last - first message,70.0,5,0.0,0.0,0.0,-
 qwen3-14b,injection,accumulation: last - first message,130.0,5,0.040000000000000015,0.0,0.08000000000000003,-
 qwen3-4b,injection,accumulation: last - first message,all,10,0.08,-0.019999999999999983,0.18,-
 qwen3-4b,injection,accumulation: last - first message,70.0,5,0.12000000000000002,0.04,0.2,-
 qwen3-4b,injection,accumulation: last - first message,130.0,5,0.04,-0.11999999999999997,0.24,-
-qwen3-8b,injection,accumulation: last - first message,all,2,0.1,0.0,0.2,-
-qwen3-8b,injection,accumulation: last - first message,70.0,1,0.2,,,-
-qwen3-8b,injection,accumulation: last - first message,130.0,1,0.0,,,-
 qwen3-14b,injection,decay: during - after,all,10,0.01850000000000001,0.004000000000000002,0.03500000000000002,-
 qwen3-14b,injection,decay: during - after,70.0,5,0.012000000000000005,0.0,0.028000000000000008,-
 qwen3-14b,injection,decay: during - after,130.0,5,0.025000000000000012,0.0,0.051000000000000024,-
 qwen3-4b,injection,decay: during - after,all,10,0.034749999999999996,-0.013999999999999995,0.08549999999999999,-
 qwen3-4b,injection,decay: during - after,70.0,5,0.04,-0.018000000000000006,0.092,-
 qwen3-4b,injection,decay: during - after,130.0,5,0.02949999999999999,-0.047999999999999994,0.11849999999999997,-
-qwen3-8b,injection,decay: during - after,all,2,-0.009999999999999988,-0.019999999999999976,0.0,-
-qwen3-8b,injection,decay: during - after,70.0,1,-0.019999999999999976,,,-
-qwen3-8b,injection,decay: during - after,130.0,1,0.0,,,-
 qwen3-14b,injection,news at P8: P8 - P7,all,10,-0.009999999999999998,-0.040000000000000015,0.020000000000000028,-
 qwen3-14b,injection,news at P8: P8 - P7,70.0,5,0.020000000000000018,0.0,0.06000000000000005,-
 qwen3-14b,injection,news at P8: P8 - P7,130.0,5,-0.040000000000000015,-0.08000000000000003,0.0,-
 qwen3-4b,injection,news at P8: P8 - P7,all,10,-0.1,-0.18,-0.02,-
 qwen3-4b,injection,news at P8: P8 - P7,70.0,5,-0.12000000000000002,-0.2,-0.04,-
 qwen3-4b,injection,news at P8: P8 - P7,130.0,5,-0.07999999999999999,-0.24,0.0,-
-qwen3-8b,injection,news at P8: P8 - P7,all,2,-0.024999999999999994,-0.2,0.15000000000000002,-
-qwen3-8b,injection,news at P8: P8 - P7,70.0,1,-0.2,,,-
-qwen3-8b,injection,news at P8: P8 - P7,130.0,1,0.15000000000000002,,,-
 qwen3-14b,injection,price during,all,10,0.012,-7.025630077706064e-19,0.024,-
 qwen3-14b,injection,price during,70.0,5,0.012000000000000002,-0.008000000000000004,0.028000000000000008,-
 qwen3-14b,injection,price during,130.0,5,0.012,0.0,0.028000000000000004,-
 qwen3-4b,injection,price during,all,10,-0.004999999999999999,-0.024999999999999988,0.016000000000000007,-
 qwen3-4b,injection,price during,70.0,5,0.0020000000000000087,-0.03199999999999999,0.032000000000000015,-
 qwen3-4b,injection,price during,130.0,5,-0.012000000000000002,-0.036,0.015999999999999997,-
-qwen3-8b,injection,price during,all,2,-0.02,-0.04,0.0,-
-qwen3-8b,injection,price during,70.0,1,-0.04,,,-
-qwen3-8b,injection,price during,130.0,1,0.0,,,-
 qwen3-14b,injection,price after,all,10,0.005000000000000002,-0.015000000000000003,0.027500000000000004,-
 qwen3-14b,injection,price after,70.0,5,0.00500000000000001,-0.01999999999999999,0.025000000000000012,-
 qwen3-14b,injection,price after,130.0,5,0.004999999999999993,-0.020000000000000018,0.04,-
 qwen3-4b,injection,price after,all,10,-0.00875,-0.03878125,0.02378124999999983,-
 qwen3-4b,injection,price after,70.0,5,0.010000000000000004,-0.019999999999999997,0.05500000000000001,-
 qwen3-4b,injection,price after,130.0,5,-0.027500000000000004,-0.07250000000000001,0.017499999999999984,-
-qwen3-8b,injection,price after,all,2,0.006249999999999992,-0.037500000000000006,0.04999999999999999,-
-qwen3-8b,injection,price after,70.0,1,0.04999999999999999,,,-
-qwen3-8b,injection,price after,130.0,1,-0.037500000000000006,,,-
-qwen3-14b,injection,interaction during,all,10,-0.020000000000000004,-0.03800000000000001,1.405126015541119e-18,-
-qwen3-14b,injection,interaction during,70.0,5,-0.020000000000000007,-0.04800000000000001,0.016000000000000007,-
+qwen3-14b,injection,interaction during,all,10,-0.019000000000000006,-0.037000000000000005,1.405126015541119e-18,-
+qwen3-14b,injection,interaction during,70.0,5,-0.01800000000000001,-0.04400000000000002,0.016000000000000007,-
 qwen3-14b,injection,interaction during,130.0,5,-0.02,-0.044000000000000004,0.0,-
 qwen3-4b,injection,interaction during,all,10,-0.010000000000000004,-0.061999999999999986,0.04299999999999999,-
 qwen3-4b,injection,interaction during,70.0,5,-0.026000000000000013,-0.08600000000000003,0.039999999999999994,-
 qwen3-4b,injection,interaction during,130.0,5,0.006000000000000005,-0.07599999999999998,0.09,-
-qwen3-8b,injection,interaction during,all,2,-0.02,-0.04,0.0,-
-qwen3-8b,injection,interaction during,70.0,1,-0.04,,,-
-qwen3-8b,injection,interaction during,130.0,1,0.0,,,-
 qwen3-14b,injection,buys during,all,10,0.13999999999999999,0.06000000000000001,0.22000000000000003,-
 qwen3-14b,injection,buys during,70.0,5,0.16,0.08,0.2,-
 qwen3-14b,injection,buys during,130.0,5,0.12000000000000002,0.0,0.27999999999999997,-
 qwen3-4b,injection,buys during,all,10,0.12,-0.02,0.24000000000000005,-
 qwen3-4b,injection,buys during,70.0,5,0.16,-0.04,0.32,-
 qwen3-4b,injection,buys during,130.0,5,0.08000000000000002,-0.12000000000000002,0.28,-
-qwen3-8b,injection,buys during,all,2,0.19999999999999998,-0.2,0.6,-
-qwen3-8b,injection,buys during,70.0,1,0.6,,,-
-qwen3-8b,injection,buys during,130.0,1,-0.2,,,-
 qwen3-14b,injection,"text at P4, BAD news",all,6,-0.016666666666666673,-0.05000000000000002,0.0,-
 qwen3-14b,injection,"text at P4, GOOD news",all,4,0.0,0.0,0.0,-
 qwen3-4b,injection,"text at P4, BAD news",all,6,0.008333333333333331,-0.07500000000000001,0.10000000000000002,-
 qwen3-4b,injection,"text at P4, GOOD news",all,4,-0.04999999999999999,-0.14999999999999997,0.0,-
-qwen3-8b,injection,"text at P4, BAD news",all,1,0.0,,,-
-qwen3-8b,injection,"text at P4, GOOD news",all,1,0.0,,,-

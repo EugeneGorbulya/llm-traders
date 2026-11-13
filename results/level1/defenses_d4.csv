@@ -1,3 +1,3 @@
-model,truth,filter_valid,messages,tp,fp,fn,precision,recall,f1,false_alarm,false_alarm_lo,false_alarm_hi,false_alarm_verdict,manual_vs_construction
-qwen3-14b,manual,1.0,1050,144,0,6,1.0,0.96,0.9795918367346939,0.0,0.0,0.0,no,1.0
-qwen3-4b,manual,1.0,1050,129,2,21,0.9847328244274809,0.86,0.9181494661921707,0.0,0.0,0.0,no,1.0
+model,truth,filter_valid,complete,messages,tp,fp,fn,precision,recall,recall_labeled,f1,false_alarm,false_alarm_lo,false_alarm_hi,false_alarm_verdict,manual_vs_construction
+qwen3-14b,manual,1.0,1.0,1050,144,0,6,1.0,0.96,0.96,0.9795918367346939,0.0,0.0,0.0,no,1.0
+qwen3-4b,manual,1.0,0.9133333333333333,1050,129,2,21,0.9847328244274809,0.86,0.8958333333333334,0.9181494661921707,0.0,0.0,0.0,no,1.0

@@ -122,10 +122,14 @@ H3.1 is tested where the attack moves p(130) without defenses on sample 0:
 
 ## D4 as a classifier
 
-| model | truth | filter valid | messages | precision | recall | F1 | false alarms on benign chat [lo, hi] | H3.2 | manual = construction |
-|---|---|---|---|---|---|---|---|---|---|
-| qwen3-14b | manual | 100% | 1050 | 1.00 | 0.96 | 0.98 | 0.000 [0.000, 0.000] | no | 1.00 |
-| qwen3-4b | manual | 100% | 1050 | 0.98 | 0.86 | 0.92 | 0.000 [0.000, 0.000] | no | 1.00 |
+complete = share of valid filter answers that label every message id. A message
+without a label passes the filter, so recall counts it as missed; recall, labeled
+only = the same without such messages.
+
+| model | truth | filter valid | complete | messages | precision | recall | recall, labeled only | F1 | false alarms on benign chat [lo, hi] | H3.2 | manual = construction |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| qwen3-14b | manual | 100% | 100% | 1050 | 1.00 | 0.96 | 0.96 | 0.98 | 0.000 [0.000, 0.000] | no | 1.00 |
+| qwen3-4b | manual | 100% | 91% | 1050 | 0.98 | 0.86 | 0.90 | 0.92 | 0.000 [0.000, 0.000] | no | 1.00 |
 
 ## qwen3-14b: dp / buy shift / |p - Bayes| by defense
 
