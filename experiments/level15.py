@@ -11,7 +11,7 @@ p.add_argument("--seeds", type=int, help="first N seeds of each final value")
 p.add_argument("--dry-run", action="store_true", help="only count the sessions")
 a = p.parse_args()
 if not a.model and not a.dry_run:
-    p.error("нужен --model (или --dry-run)")
+    p.error("--model is required (or --dry-run)")
 
 if a.dry_run:
     sessions = level15.plan(level15.load_config(), a.seeds)

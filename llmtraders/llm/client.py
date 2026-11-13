@@ -15,7 +15,8 @@ from .cache import ResponseCache, make_key
 from .config import ModelConfig
 from .log import JsonlLogger
 
-Validator = Callable[[dict[str, Any]], tuple[bool, dict[str, Any], str | None]]
+# obj -> (ok, the normalised answer or None, the error or None)
+Validator = Callable[[dict[str, Any]], tuple[bool, dict[str, Any] | None, str | None]]
 
 _JSON_OBJ = re.compile(r"\{.*\}", re.DOTALL)
 MAX_SERVER_ERRORS_IN_A_ROW = 6
@@ -39,6 +40,14 @@ def extract_json(text: str) -> dict[str, Any] | None:
             return obj if isinstance(obj, dict) else None
         except json.JSONDecodeError:
             return None
+
+
+def _unreachable(cfg: ModelConfig) -> RuntimeError:
+    # ../monitor/watchdog.sh restarts a chain on "not responding" (a dropped SSH tunnel).
+    where = cfg.base_url or "API"
+    return RuntimeError(
+        f"{cfg.name} ({cfg.backend}, {cfg.platform}) is not responding at {where}"
+    )
 
 
 @dataclass
@@ -81,7 +90,12 @@ class LLMClient:
         tags: dict[str, Any] | None = None,
     ) -> CallResult:
         be = self.backend(cfg)
-        digest = be.digest(cfg)
+        try:
+            digest = be.digest(cfg)
+        except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+            # The Ollama digest is the first request of a client: a dropped tunnel
+            # shows up here.
+            raise _unreachable(cfg) from e
         total_ms, hits = 0.0, 0
         last: RawResponse | None = None
         error: str | None = None
@@ -124,15 +138,13 @@ class LLMClient:
                     if self._server_errors_in_a_row >= MAX_SERVER_ERRORS_IN_A_ROW:
                         raise RuntimeError(
                             f"{cfg.name}: HTTP {e.code} {e.reason} "
-                            f"{MAX_SERVER_ERRORS_IN_A_ROW} раз подряд"
+                            f"{MAX_SERVER_ERRORS_IN_A_ROW} times in a row"
                         ) from e
                     last = RawResponse(text="", error=repr(e))
                 except TimeoutError as e:
                     last = RawResponse(text="", error=repr(e))
                 except (urllib.error.URLError, ConnectionError) as e:
-                    raise RuntimeError(
-                        f"Ollama ({cfg.platform}) не отвечает на {cfg.base_url}"
-                    ) from e
+                    raise _unreachable(cfg) from e
                 # Failures are not cached, so a rerun asks the model again.
                 if self.cache and last.error is None:
                     self.cache.put(key, cfg.name, {"raw": asdict(last)})

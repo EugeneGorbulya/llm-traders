@@ -12,6 +12,8 @@ from .auction import Order
 
 ROOT = Path(__file__).resolve().parents[1]
 N_PERIODS = 12
+SIGNAL_PERIODS = (4, 8)
+CHAT_WINDOW = 2
 
 Side = Literal["buy", "sell", "hold"]
 
@@ -51,7 +53,7 @@ class Observation:
     chat: list[ChatMessage]
     ref_price: float
     sees_chat: bool = True
-    chat_window: int = 2
+    chat_window: int = CHAT_WINDOW
 
     def signals(self) -> list[str]:
         return [s for _, s in self.official]

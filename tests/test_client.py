@@ -180,7 +180,7 @@ def test_connection_refused_stops_the_run(tmp_path):
     client = LLMClient(cache=ResponseCache(tmp_path / "c.sqlite"))
     client._backends["ollama"] = FailingBackend(ConnectionRefusedError(61, "refused"))
     url = get_model("qwen3-8b").base_url
-    with pytest.raises(RuntimeError, match=f"не отвечает на {re.escape(url)}"):
+    with pytest.raises(RuntimeError, match=f"not responding at {re.escape(url)}"):
         ask(client, "qwen3-8b")
 
 
@@ -213,7 +213,7 @@ def test_a_run_of_server_errors_stops_the_run(tmp_path):
     client = client_with(FailingBackend(error), tmp_path)
     assert not ask(client, "mock-rational", sample=0).valid
     assert not ask(client, "mock-rational", sample=1).valid
-    with pytest.raises(RuntimeError, match="HTTP 500 .* 6 раз подряд"):
+    with pytest.raises(RuntimeError, match="HTTP 500 .* 6 times in a row"):
         ask(client, "mock-rational", sample=2)
 
 
@@ -239,3 +239,48 @@ def test_anthropic_request_asks_for_json_without_sampling(name):
     assert not {"temperature", "top_p", "top_k", "tools", "tool_choice"} & sent.keys()
     assert all(m["role"] != "system" for m in sent["messages"])
     assert r.text == '{"order": "hold"}'
+
+
+def _anthropic_error(kind: str) -> Exception:
+    anthropic = pytest.importorskip("anthropic")
+    httpx = pytest.importorskip("httpx2")
+    req = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    if kind == "connection":
+        return anthropic.APIConnectionError(request=req)
+    code = 529 if kind == "overloaded" else 400
+    response = httpx.Response(code, request=req)
+    return anthropic.APIStatusError(kind, response=response, body=None)
+
+
+@pytest.mark.parametrize(
+    ("kind", "stops"),
+    [("overloaded", None), ("bad request", RuntimeError), ("connection", RuntimeError)],
+)
+def test_api_errors_follow_the_ollama_rule(tmp_path, kind, stops):
+    # An overloaded API is a failed answer (retry, then invalid); a 4xx or no
+    # connection stops the run, as with Ollama.
+    error = _anthropic_error(kind)
+
+    def create(**kwargs):
+        raise error
+
+    backend = AnthropicBackend()
+    backend._client = SimpleNamespace(messages=SimpleNamespace(create=create))
+    client = client_with(backend, tmp_path)
+    if stops is None:
+        res = ask(client, "mock-rational")
+        assert not res.valid and res.attempts == 2 and "529" in res.error
+    else:
+        with pytest.raises(stops):
+            ask(client, "mock-rational")
+
+
+def test_a_dropped_tunnel_at_the_digest_stops_with_the_watchdog_text(tmp_path):
+    class NoDigest(Backend):
+        def digest(self, cfg):
+            raise urllib.error.URLError(ConnectionRefusedError(61, "refused"))
+
+    client = LLMClient(cache=ResponseCache(tmp_path / "c.sqlite"))
+    client._backends["ollama"] = NoDigest()
+    with pytest.raises(RuntimeError, match="not responding"):
+        ask(client, "qwen3-8b")

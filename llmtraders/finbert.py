@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
@@ -10,19 +9,20 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from . import level1
 from .analysis import cluster_ci
 from .chat import MessageBank
 from .core import Observation
 from .level1 import build_observation, plan
 from .llm.log import git_commit
-from .results import RESULTS
+from .results import write_jsonl
 
 FINBERT = "ProsusAI/finbert"
 # Pinned: the model page was updated on 12.10.2026, and a re-run must score with
 # the same weights.
 FINBERT_REVISION = "0bc2ac10dda6929bcb1f77ccc43c7ec5c424f031"
 LABELS = ("positive", "negative", "neutral")
-OUT = RESULTS / "level1" / "finbert"
+OUT = level1.FINBERT_DIR
 BATCH = 64
 
 # texts -> probabilities, one row per text, columns in LABELS order.
@@ -115,10 +115,7 @@ def run(out_dir: Path = OUT, classify: Classifier | None = None) -> Path:
         )
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    (out / "results.jsonl").write_text(
-        "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
-        encoding="utf-8",
-    )
+    write_jsonl(out / "results.jsonl", rows)
     table(rows, out)
     return out
 

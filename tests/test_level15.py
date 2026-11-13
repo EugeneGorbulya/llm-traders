@@ -67,6 +67,8 @@ def test_load_keeps_models_apart(tmp_path):
             cache_path=tmp_path / "c.sqlite",
         )
         dirs.append(out)
+    # Runs with 1 seed per value are smoke runs: the default tables leave them out.
+    assert level15.full_runs(tmp_path) == []
     one = analysis15.load(dirs[:1])
     both = analysis15.load(dirs)
     assert len(both) == 2 * len(one)

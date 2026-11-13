@@ -2,29 +2,32 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
-import yaml
 
 from .agents import LLMTrader, ScriptedManipulator
 from .bayes import posterior_high
 from .chat import MessageBank
 from .core import ROOT
 from .llm.config import get_model
-from .llm.log import JsonlLogger
 from .market import SessionConfig, run_scripted
 from .prompts import PROMPT_VERSION, PromptConfig
-from .results import RESULTS, make_client
+from .results import (
+    RESULTS,
+    load_yaml,
+    make_client,
+    read_jsonl,
+    session_log,
+    write_jsonl,
+)
 
 CONFIG = ROOT / "configs" / "level15.yaml"
 NEUTRAL = "neutral"
 
 
 def load_config(path: Path = CONFIG) -> dict[str, Any]:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return load_yaml(path)
 
 
 @dataclass(frozen=True)
@@ -53,6 +56,17 @@ def plan(cfg: dict[str, Any], seeds: int | None = None) -> list[Session]:
     return sessions
 
 
+def full_runs(root: Path = RESULTS / "level15") -> list[Path]:
+    """Run directories with every seed of the config (a smoke run has fewer)."""
+    seeds = {s for value_seeds in load_config()["seeds"].values() for s in value_seeds}
+    out = []
+    for path in sorted(Path(root).glob("*/sessions.jsonl")):
+        done = {r["seed"] for r in read_jsonl(path) if r["kind"] == "session"}
+        if seeds <= done:
+            out.append(path.parent)
+    return out
+
+
 def run(
     model: str,
     *,
@@ -65,8 +79,7 @@ def run(
     mcfg = get_model(model)
     out = Path(out_dir) if out_dir else RESULTS / "level15" / model
     client = make_client(out, cache_path)
-    (out / "sessions.jsonl").unlink(missing_ok=True)
-    logger = JsonlLogger(out / "sessions.jsonl")
+    logger = session_log(out)
     pcfg = PromptConfig(ticker=bank.ticker)
     rows = []
     for s in plan(cfg, seeds):
@@ -127,8 +140,5 @@ def run(
                     "valid": p is not None,
                 }
             )
-    (out / "results.jsonl").write_text(
-        "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
-        encoding="utf-8",
-    )
+    write_jsonl(out / "results.jsonl", rows)
     return out

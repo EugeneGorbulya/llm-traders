@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from .core import ROOT
 from .llm.cache import ResponseCache
@@ -23,6 +26,22 @@ def make_client(out_dir: Path, cache_path: Path | None = None) -> LLMClient:
         cache=ResponseCache(cache_path or CACHE),
         logger=JsonlLogger(out_dir / "calls.jsonl"),
     )
+
+
+def session_log(out_dir: Path) -> JsonlLogger:
+    """A fresh sessions.jsonl in out_dir: a rerun replaces the log, it never appends."""
+    path = Path(out_dir) / "sessions.jsonl"
+    path.unlink(missing_ok=True)
+    return JsonlLogger(path)
+
+
+def load_yaml(path: Path) -> dict[str, Any]:
+    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+
+
+def write_jsonl(path: Path, rows: Sequence[dict[str, Any]]) -> None:
+    text = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
+    Path(path).write_text(text, encoding="utf-8")
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:

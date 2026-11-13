@@ -11,8 +11,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from .agents import LLMTrader
 from .bayes import posterior_high
 from .chat import (
@@ -32,14 +30,25 @@ from .core import (
 )
 from .llm.config import get_model
 from .prompts import PROMPT_VERSION, PromptConfig
-from .results import RESULTS, make_client
+from .results import RESULTS, load_yaml, make_client
 
 CONFIG = ROOT / "configs" / "level1.yaml"
+RUNS = RESULTS / "level1"
+FINBERT_DIR = RUNS / "finbert"
 TASK_KINDS = ("no_chat", "neutral", "official", "attack")
 
 
+def run_dirs() -> list[Path]:
+    """The level-1 runs of the LLM traders (FinBERT keeps another schema)."""
+    found = []
+    for d in sorted(RUNS.iterdir()):
+        if (d / "results.jsonl").exists() and d != FINBERT_DIR:
+            found.append(d)
+    return found
+
+
 def load_config(path: Path = CONFIG) -> dict[str, Any]:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return load_yaml(path)
 
 
 @dataclass(frozen=True)
@@ -129,16 +138,25 @@ def plan(
     return cfg, tasks
 
 
+def official_signals(
+    cfg: dict[str, Any], state: str, condition: str
+) -> list[tuple[int, str]]:
+    """The official record of a snapshot: the signals of its state, plus one more in
+    the snapshot period for an official-news condition."""
+    official = [(int(p), s) for p, s in cfg["states"][state]["signals"]]
+    cond = next(c for c in cfg["conditions"] if c["name"] == condition)
+    if cond["kind"] == "official":
+        official.append((int(cfg["snapshot"]["period"]), cond.get("signal", "good")))
+    return official
+
+
 def build_observation(
     task: Task, cfg: dict[str, Any], bank: MessageBank
 ) -> tuple[Observation, dict[str, Any]]:
     snap, st = cfg["snapshot"], cfg["states"][task.state]
     period, window = int(snap["period"]), int(snap["chat_window"])
     base = [s for _, s in st["signals"]]
-    official = [(int(p), s) for p, s in st["signals"]]
-    if task.kind == "official":
-        cond = next(c for c in cfg["conditions"] if c["name"] == task.condition)
-        official.append((period, cond.get("signal", "good")))
+    official = official_signals(cfg, task.state, task.condition)
     history = [
         PricePoint(t, float(p), int(snap["volume"]))
         for t, p in enumerate(st["prices"], start=1)
@@ -204,7 +222,7 @@ def out_dir_for(model: str, defenses: Sequence[str] = (), fmt: str = "a") -> Pat
         name += "_" + "+".join(defenses)
     if fmt != "a":
         name += "_fmt" + fmt
-    return RESULTS / "level1" / name
+    return RUNS / name
 
 
 def run(

@@ -51,6 +51,13 @@ class MockBackend(Backend):
             claim = "130" if pumping else "70"
             text = json.dumps({"messages": [f"Insiders say KVX pays {claim}."]})
             return RawResponse(text=text, latency_ms=1.0, tokens_in=10, tokens_out=10)
+        # The rationale judge: a code is true when the rationale names it, so a test
+        # can write the answer it expects into the text.
+        props = schema.get("properties", {}) if schema is not None else {}
+        if props and all(p.get("type") == "boolean" for p in props.values()):
+            rationale = user.split("Rationale:", 1)[-1]
+            text = json.dumps({name: name in rationale for name in props})
+            return RawResponse(text=text, latency_ms=1.0, tokens_in=10, tokens_out=10)
         # "broken" fails the first time it sees a prompt, so the client's retry
         # (a new seed, same prompt) succeeds.
         prompt = json.dumps(messages)

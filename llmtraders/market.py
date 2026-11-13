@@ -19,7 +19,9 @@ from .bayes import (
 )
 from .chat import MessageBank, insert_at, neutral_messages, window
 from .core import (
+    CHAT_WINDOW,
     N_PERIODS,
+    SIGNAL_PERIODS,
     ChatMessage,
     Decision,
     DecisionContext,
@@ -36,12 +38,8 @@ CONTROL = "control"
 class SessionConfig:
     seed: int
     n_periods: int = N_PERIODS
-    low: float = LOW
-    high: float = HIGH
-    prior_high: float = PRIOR_HIGH
-    accuracy: float = ACCURACY
-    signal_periods: tuple[int, ...] = (4, 8)
-    chat_window: int = 2
+    signal_periods: tuple[int, ...] = SIGNAL_PERIODS
+    chat_window: int = CHAT_WINDOW
     neutral_per_period: int = 3
     value: float | None = None
     signals: dict[int, str] | None = None
@@ -52,15 +50,15 @@ def draw_world(cfg: SessionConfig) -> tuple[float, dict[int, str]]:
     if cfg.value is not None:
         value = cfg.value
     else:
-        drawn_high = rng.random() < cfg.prior_high
-        value = cfg.high if drawn_high else cfg.low
+        drawn_high = rng.random() < PRIOR_HIGH
+        value = HIGH if drawn_high else LOW
     if cfg.signals is not None:
         return value, dict(cfg.signals)
     sig = {}
     for p in cfg.signal_periods:
         r = random.Random(stable_int("signal", cfg.seed, p)).random()
-        correct = r < cfg.accuracy
-        good = (value == cfg.high) == correct
+        correct = r < ACCURACY
+        good = (value == HIGH) == correct
         sig[p] = "good" if good else "bad"
     return value, sig
 
@@ -69,10 +67,7 @@ def rational_path(cfg: SessionConfig, signals: dict[int, str]) -> list[float]:
     path = []
     for t in range(1, cfg.n_periods + 1):
         official = [s for p, s in sorted(signals.items()) if p <= t]
-        price = rational_price(
-            official, cfg.low, cfg.high, cfg.prior_high, cfg.accuracy
-        )
-        path.append(price)
+        path.append(rational_price(official))
     return path
 
 
@@ -118,13 +113,7 @@ class SessionResult:
     invalid: dict[str, int]
     chat: list[ChatMessage] = field(default_factory=list)
 
-    def manip_profit(self, manip_id: str = "manip") -> float | None:
-        if manip_id not in self.final:
-            return None
-        return self.final[manip_id]["wealth"] - self.initial[manip_id]["wealth"]
 
-
-# для У2 (гейт 3)
 def run_session(
     cfg: SessionConfig,
     agents: Sequence[Agent],
@@ -148,7 +137,7 @@ def run_session(
     beliefs: dict[str, list[float | None]] = {a.agent_id: [] for a in agents}
     invalid: dict[str, int] = {a.agent_id: 0 for a in agents}
     rational = rational_path(cfg, signals)
-    prior_value = value_from_p(cfg.prior_high, cfg.low, cfg.high)
+    prior_value = value_from_p(PRIOR_HIGH)
 
     for t in range(1, cfg.n_periods + 1):
         official = [(p, s) for p, s in sorted(signals.items()) if p <= t]
@@ -265,14 +254,13 @@ def run_session(
     return result
 
 
-PUMP_PERIODS = (3, 4, 5, 6, 7)
-PUMP = 0.20
+# Decision 6: the volume shown in level 1.5 is scripted too, so the agent does not see
+# its own trades in it.
+SCRIPTED_VOLUME = 8
 
 
 def pumped_path(
-    rational: Sequence[float],
-    periods: Sequence[int] = PUMP_PERIODS,
-    pump: float = PUMP,
+    rational: Sequence[float], periods: Sequence[int], pump: float
 ) -> list[float]:
     return [
         round(p * (1 + pump), 2) if (t in periods) else round(p, 2)
@@ -290,9 +278,9 @@ def run_scripted(
     logger: JsonlLogger | None = None,
     session_id: str | None = None,
     tags: dict[str, Any] | None = None,
-    pump_periods: Sequence[int] = PUMP_PERIODS,
-    pump: float = PUMP,
-    scripted_volume: int = 8,
+    *,
+    pump_periods: Sequence[int],
+    pump: float,
 ) -> SessionResult:
     logger = logger or JsonlLogger()
     sid = session_id or f"l15-s{cfg.seed}"
@@ -310,7 +298,7 @@ def run_scripted(
     feed: list[ChatMessage] = []
     beliefs: list[float | None] = []
     invalid = 0
-    prior_value = value_from_p(cfg.prior_high, cfg.low, cfg.high)
+    prior_value = value_from_p(PRIOR_HIGH)
     for t in range(1, cfg.n_periods + 1):
         official = [(p, sg) for p, sg in sorted(signals.items()) if p <= t]
         ref = history[-1].price if history else prior_value
@@ -361,7 +349,7 @@ def run_scripted(
                 filled = -min(o.qty, s["shares"])
         s["shares"] += filled
         s["cash"] -= filled * price
-        history.append(PricePoint(t, price, scripted_volume))
+        history.append(PricePoint(t, price, SCRIPTED_VOLUME))
         logger.write(
             {
                 "kind": "period",

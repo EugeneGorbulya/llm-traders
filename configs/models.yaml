@@ -55,18 +55,6 @@ models:
     options: {temperature: 1.0, top_p: 1.0, num_ctx: 16384}
     think: high
 
-  # для API-моделей (гейт 1, если будет доступ)
-  gpt-4o-mini:
-    backend: openai_compat
-    model: gpt-4o-mini
-    api_key_env: OPENAI_API_KEY
-    options: {temperature: 0.7}
-  gemini-flash-lite:
-    backend: openai_compat
-    model: TODO-gemini-3.1-flash-lite-model-id
-    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
-    api_key_env: GEMINI_API_KEY
-    options: {temperature: 0.7}
   # Level-1 grid without thinking, like the local models (decision of 10.11).
   # Sampling is the API default: non-default values are rejected with 400.
   claude-haiku-5.5:

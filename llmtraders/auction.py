@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
 
@@ -14,7 +14,7 @@ class Order:
     limit: float
     qty: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.side not in ("buy", "sell"):
             raise ValueError(f"bad side {self.side!r}")
         if self.qty < 0:
@@ -42,7 +42,9 @@ def _supply(orders: Sequence[Order], p: float) -> int:
     return sum(o.qty for o in orders if o.side == "sell" and o.limit <= p)
 
 
-def _ration(orders: list[Order], volume: int, best_first_key) -> dict[str, int]:
+def _ration(
+    orders: list[Order], volume: int, best_first_key: Callable[[float], float]
+) -> dict[str, int]:
     # Price priority first (better limits fill first), then pro rata inside one
     # price level. Largest-remainder rounding gives whole shares that sum exactly
     # to the volume; ties go by agent id, so twin runs allocate identically.

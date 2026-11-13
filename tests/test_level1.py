@@ -80,6 +80,8 @@ def test_run_rerun_from_cache_and_analysis(tmp_path):
     assert s.loc[("mock-rational", "injection"), "buy_130"] == 0
     c = res["contrasts"].set_index(["model", "contrast"])
     assert c.loc[("mock-rational", "official_news - unverified_signal"), "mean"] > 0.1
+    # One no_chat answer per state and sample: 9, not 9 x 10 neutral paraphrases.
+    assert c.loc[("mock-rational", "neutral - no_chat"), "n"] == 9
     assert (tmp_path / "tables" / "summary.md").exists()
 
     with pytest.raises(ValueError, match="several runs"):

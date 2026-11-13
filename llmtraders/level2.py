@@ -7,19 +7,17 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import yaml
 
 from .agents import Agent, FundamentalBot, LLMTrader, ScriptedManipulator, ZIBot
-from .analysis import _f
+from .analysis import fnum
 from .bayes import PRIOR_HIGH, value_from_p
 from .chat import MessageBank
-from .core import N_PERIODS, ROOT
+from .core import N_PERIODS, ROOT, SIGNAL_PERIODS
 from .llm.client import LLMClient
 from .llm.config import get_model
-from .llm.log import JsonlLogger
 from .market import CONTROL, SessionConfig, run_session
 from .prompts import PromptConfig
-from .results import RESULTS, make_client, read_jsonl
+from .results import RESULTS, load_yaml, make_client, read_jsonl, session_log
 
 CONFIG = ROOT / "configs" / "level2.yaml"
 LLM = "llm"
@@ -29,9 +27,17 @@ MANIP = "manip"
 # Before the first trade the reference price is the prior value, as in run_session.
 PRIOR_VALUE = value_from_p(PRIOR_HIGH)
 
+# The level-2 model, chosen by the rule of docs/prereg/l1.md (11.11).
+MODEL = "qwen3-4b"
+
 
 def load_config(path: Path = CONFIG) -> dict[str, Any]:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return load_yaml(path)
+
+
+def result_root(kind: str, cfg: dict) -> Path:
+    """results/level2/<main|variant_c>/<version>/<level-2 model>."""
+    return RESULTS / "level2" / kind / cfg["version"] / MODEL
 
 
 def zi_ids(n: int) -> list[str]:
@@ -131,8 +137,7 @@ def run(
     for name in main["configurations"]:
         step = out / name / seed_set
         client = make_client(step, cache_path)
-        (step / "sessions.jsonl").unlink(missing_ok=True)
-        logger = JsonlLogger(step / "sessions.jsonl")
+        logger = session_log(step)
         tags = {
             "model": model,
             "version": cfg["version"],
@@ -167,8 +172,7 @@ def calibrate(
     for n_zi in cal["zi_steps"]:
         step = out / f"zi{n_zi}"
         client = make_client(step, cache_path)
-        (step / "sessions.jsonl").unlink(missing_ok=True)
-        logger = JsonlLogger(step / "sessions.jsonl")
+        logger = session_log(step)
         tags = {"model": model, "version": cfg["version"], "zi_bots": n_zi}
         for value, seeds in cal["seeds"].items():
             for seed in seeds:
@@ -187,7 +191,7 @@ def calibrate(
 def periods_table(path: Path) -> pd.DataFrame:
     """One row per session and period, from sessions.jsonl."""
     rows, news = [], {}
-    first_news = SessionConfig.signal_periods[0]
+    first_news = SIGNAL_PERIODS[0]
     for r in read_jsonl(path):
         if r["kind"] == "session":
             news[r["session"]] = r["signals"][str(first_news)]
@@ -224,7 +228,7 @@ def periods_table(path: Path) -> pd.DataFrame:
 
 def news_moves(p: pd.DataFrame) -> pd.DataFrame:
     """Per session: price level before the second official news minus before the first."""
-    first, second = SessionConfig.signal_periods[:2]
+    first, second = SIGNAL_PERIODS[:2]
     keys = ["zi_bots", "session"]
     lvl = p.set_index([*keys, "period"])["level"]
     move = lvl.xs(second - 1, level="period") - lvl.xs(first - 1, level="period")
@@ -305,8 +309,8 @@ def _step_lines(p: pd.DataFrame, s: pd.DataFrame) -> list[str]:
         move = f"{r['news_move']:+.1f} ({r['news_follow']})"
         lines.append(
             f"| {r['session']} | {r['news']} | {r['llm_traded']} | {r['traded']} | "
-            f"{r['volume']} | {_f(r['llm_side_share'])} | {_f(r['median_abs_gap'], 1)} | "
-            f"{_f(r['hold_share'])} | {r['invalid']} | {move} |"
+            f"{r['volume']} | {fnum(r['llm_side_share'])} | {fnum(r['median_abs_gap'], 1)} | "
+            f"{fnum(r['hold_share'])} | {r['invalid']} | {move} |"
         )
     by_period = p.groupby("period").agg(
         llm_traded=("llm_traded", "sum"), gap=("gap", "median")
@@ -318,7 +322,7 @@ def _step_lines(p: pd.DataFrame, s: pd.DataFrame) -> list[str]:
     ]
     for period, r in by_period.iterrows():
         n = int(r["llm_traded"])
-        lines.append(f"| {period} | {n} of {len(s)} | {_f(r['gap'], 1)} |")
+        lines.append(f"| {period} | {n} of {len(s)} | {fnum(r['gap'], 1)} |")
     return lines
 
 
@@ -336,7 +340,7 @@ def write_calibration(out: Path, cfg: dict[str, Any], model: str) -> tuple[int, 
     traders = ", ".join(f"{t['cash']}+{t['shares']}" for t in cfg["traders"])
     zi = cfg["zi"]
     k = cal["min_llm_traded_periods"]
-    first, second = SessionConfig.signal_periods[:2]
+    first, second = SIGNAL_PERIODS[:2]
     header = (
         f"| ZI bots | LLM trades in >= {k} of {N_PERIODS} periods "
         "| mean LLM traded periods | median abs gap | pass | periods with ZI-only trades "
@@ -358,7 +362,7 @@ def write_calibration(out: Path, cfg: dict[str, Any], model: str) -> tuple[int, 
         ok = "yes" if r["turnover_pass"] and r["gap_pass"] else "NO"
         lines.append(
             f"| {r['zi_bots']} | {r['turnover_ok']} of {r['sessions']} | "
-            f"{_f(r['mean_llm_traded'], 1)} | {_f(r['median_abs_gap'], 1)} | {ok} | "
+            f"{fnum(r['mean_llm_traded'], 1)} | {fnum(r['median_abs_gap'], 1)} | {ok} | "
             f"{r['zi_only_periods']} | "
             f"{r['news_with']} / {r['news_flat']} / {r['news_against']} |"
         )

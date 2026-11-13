@@ -25,11 +25,19 @@ uv run python -m experiments.d4_check --model qwen3-4b  # фильтр D4 на �
 uv run python -m experiments.finbert                   # FinBERT-трейдер на лентах У1 (бейзлайн, без LLM)
 uv run python -m experiments.defenses --model qwen3-4b  # защиты D1-D4 по configs/defenses.yaml: 600 вызовов + фильтр D4
 uv run python -m experiments.d4_labels                 # пустой лист data/labels/d4_feed.csv для ручной разметки ленты
-uv run python -m analysis.level1 results/level1/*/     # гипотезы, k из n, выбор для У2 (одна папка - таблицы одного прогона)
-uv run python -m analysis.defenses results/level1/*/   # защиты по трём осям, D4 как классификатор
-uv run python -m analysis.level15 results/level15/*/    # У1.5: p(130) по периодам, эффекты текста и цены, окна до / во время / после
+uv run python -m experiments.rationale_labels           # пустой лист data/labels/rationales.csv: 100 обоснований У1 по квотам кодбука (configs/codebook.yaml), ключ отдельно
+uv run python -m experiments.judge --model claude-haiku-5.5  # LLM-судья по кодбуку на 100 эталонных обоснованиях: κ, точность и полнота по кодам, в results/codebook/<модель>/; --grid: на всех обоснованиях основной сетки У1 (доли кодов по моделям и условиям, в .../grid/)
+uv run python -m analysis.all                          # пересобрать все таблицы и рисунки из results/ без вызовов моделей (≈ 1 мин; ниже - те же шаги по одному)
+uv run python -m analysis.level1                       # гипотезы, k из n, выбор для У2 по всем прогонам У1 (папка в аргументе - таблицы одного прогона)
+uv run python -m analysis.defenses                     # защиты по трём осям, D4 как классификатор
+uv run python -m analysis.level15    # У1.5: p(130) по периодам, эффекты текста и цены, окна до / во время / после (полные прогоны, без смоука)
+uv run python -m analysis.level1_extra                  # доп. анализ У1 для отчёта (не пре-регистрация): размер внутри выпуска, сдвиг по состояниям, слова в обоснованиях, формат b; в results/level1/extra/
+uv run python -m analysis.cases                         # случаи для качественного разбора: правила отбора по кодам судьи, убеждениям и заявкам, счётчики по моделям и примеры; в results/level1/extra/
+uv run python -m analysis.text_regression               # регрессия сдвига p(130) на признаки текста атаки (сентимент FinBERT, число, источник, повелительное наклонение, длина, число сообщений): между типами и внутри типа, в results/level1/extra/
 uv run python -m analysis.level2 results/level2/main/level2_v1/qwen3-4b/  # У2 по пре-регистрации: правило доливки, гипотезы, сдвиги цены и убеждений
-uv run python -m analysis.variant_c results/level2/variant_c/level2_v1/qwen3-4b/  # вариант C: описательные таблицы по кускам, без вердиктов
+uv run python -m analysis.level2_extra results/level2/main/level2_v1/qwen3-4b/  # доп. анализ У2 (не пре-регистрация): заявки LLM при injection и фейке (доля покупок, объём, лимиты, ≥ 130), кто платит (богатство по классам агентов), время возврата цены к двойнику после P9; в .../extra/
+uv run python -m analysis.variant_c results/level2/variant_c/level2_v1/qwen3-4b/  # вариант C: описательные таблицы по кускам, без вердиктов; extra.md - формулировки LLM-манипулятора против типов банка (признаки, ближайший тип по эмбеддингам) и заявки по моделям в смешанном рынке
+uv run python -m analysis.figures                       # рисунки и их таблицы для отчёта в results/figures/ (У1: вес доверия w, квадранты «убеждение × заявка» с полом шума, лимиты покупок после injection, коды обоснований по судье; У2: цена по периодам и сдвиги по конфигурациям, заявки LLM при фейке и injection, кто платит, возврат цены к двойнику после P9; вариант C рядом с У2 и D4 на рынке)
 uv run python -m experiments.bank                      # проверка банка; --freeze: заморозка
 ```
 

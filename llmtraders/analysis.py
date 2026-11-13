@@ -10,7 +10,7 @@ from typing import NamedTuple
 import numpy as np
 import pandas as pd
 
-from .bayes import value_from_p
+from .bayes import HIGH, LOW, value_from_p
 from .quiz import QUIZ_DIR
 from .results import read_jsonl
 
@@ -94,18 +94,40 @@ N_BOOT = 2000
 BOOT_SEED = 0
 
 
-def cluster_ci(values: Sequence[float], clusters: Sequence[int]) -> tuple[float, float]:
-    frame = pd.DataFrame({"value": values, "cluster": clusters}).dropna()
-    per_cluster = frame.groupby("cluster")["value"].agg(["sum", "count"])
-    n_clusters = len(per_cluster)
-    if n_clusters < 2:
+# Results by final value: all seeds, then the 70 and the 130 worlds.
+SPLITS = ("all", LOW, HIGH)
+
+
+def split_rows(frame: pd.DataFrame, split: object) -> pd.DataFrame:
+    if split == "all":
+        return frame
+    return frame[frame["value"] == split]
+
+
+def split_label(split: object) -> str:
+    return "all seeds" if split == "all" else f"value {float(split):.0f}"
+
+
+def ratio_ci(
+    num: Sequence[float], den: Sequence[float], clusters: Sequence[int]
+) -> tuple[float, float]:
+    """95% interval of sum(num) / sum(den), whole clusters resampled."""
+    frame = pd.DataFrame({"num": num, "den": den, "cluster": clusters}).dropna()
+    per = frame.groupby("cluster")[["num", "den"]].sum()
+    n = len(per)
+    if n < 2:
         return (np.nan, np.nan)
     rng = np.random.default_rng(BOOT_SEED)
-    picks = rng.integers(0, n_clusters, size=(N_BOOT, n_clusters))
-    sums = per_cluster["sum"].to_numpy()[picks].sum(axis=1)
-    counts = per_cluster["count"].to_numpy()[picks].sum(axis=1)
-    lo, hi = np.percentile(sums / counts, [2.5, 97.5])
+    picks = rng.integers(0, n, size=(N_BOOT, n))
+    num_sums = per["num"].to_numpy()[picks].sum(axis=1)
+    den_sums = per["den"].to_numpy()[picks].sum(axis=1)
+    lo, hi = np.percentile(num_sums / den_sums, [2.5, 97.5])
     return (float(lo), float(hi))
+
+
+def cluster_ci(values: Sequence[float], clusters: Sequence[int]) -> tuple[float, float]:
+    """95% interval of the mean, whole clusters resampled (docs/prereg/l1.md)."""
+    return ratio_ci(values, np.ones(len(values)), clusters)
 
 
 def verdict(
@@ -124,8 +146,10 @@ def verdict(
         confirmed = lo > 0 and mean >= threshold
     elif expected == "<0":
         confirmed = hi < 0 and mean <= -threshold
-    else:
+    elif expected == "~0":
         confirmed = lo <= 0 <= hi or abs(mean) < threshold
+    else:
+        raise ValueError(f"unknown expectation {expected!r}")
     return "yes" if confirmed else "no"
 
 
@@ -141,9 +165,26 @@ def estimate(diff: pd.Series, clusters: pd.Series, expected: str | None) -> dict
     }
 
 
-def _main(df: pd.DataFrame) -> pd.Series:
+def is_main(df: pd.DataFrame) -> pd.Series:
     """Runs that test hypotheses: no defenses, prompt format a."""
     return (df["defenses"] == "") & (df["fmt"] == "a")
+
+
+def trust_weight(dp: pd.Series, den: pd.Series) -> float:
+    """w = mean(dp) / mean(claim_p - p_neutral) over the pairs with a claimed value: 1 is
+    the Bayes-correct update to the claim, 0 ignores it; NaN when the claim moves nothing."""
+    if abs(den.mean()) <= 1e-9:
+        return np.nan
+    return dp.mean() / den.mean()
+
+
+def model_pairs(m: pd.DataFrame, a: str, b: str, condition: str) -> pd.DataFrame:
+    """dp of models a and b (dp_a, dp_b) on the same stimuli of one condition."""
+    side_a = m[(m["model"] == a) & (m["condition"] == condition)]
+    side_b = m[(m["model"] == b) & (m["condition"] == condition)]
+    return side_a[STIMULUS + ["dp"]].merge(
+        side_b[STIMULUS + ["dp"]], on=STIMULUS, suffixes=("_a", "_b")
+    )
 
 
 def load(dirs: Sequence[Path]) -> pd.DataFrame:
@@ -157,7 +198,7 @@ def load(dirs: Sequence[Path]) -> pd.DataFrame:
     df["buy"] = np.where(df["valid"], (df["side"] == "buy").astype(float), np.nan)
     df["buy_130"] = np.where(
         df["valid"],
-        ((df["side"] == "buy") & (df["limit_price"].fillna(0) >= 130)).astype(float),
+        ((df["side"] == "buy") & (df["limit_price"].fillna(0) >= HIGH)).astype(float),
         np.nan,
     )
     implied_value = value_from_p(df["p_high"])
@@ -203,8 +244,10 @@ def summary(df: pd.DataFrame) -> pd.DataFrame:
                 dp=p["dp"].mean(), dp_lo=lo, dp_hi=hi, buy_shift=p["buy_shift"].mean()
             )
             w = p[p["w_den"].notna() & p["dp"].notna()]
-            if len(w) and abs(w["w_den"].mean()) > 1e-9:
-                rec["w"] = w["dp"].mean() / w["w_den"].mean()
+            if len(w):
+                weight = trust_weight(w["dp"], w["w_den"])
+                if not np.isnan(weight):
+                    rec["w"] = weight
         out.append(rec)
     return pd.DataFrame(out)
 
@@ -230,10 +273,16 @@ def contrasts(df: pd.DataFrame) -> pd.DataFrame:
             )
     neutral = df[(df["condition"] == "neutral") & df["valid"]]
     no_chat = df[(df["condition"] == "no_chat") & df["valid"]]
-    text_pairs = neutral.merge(
-        no_chat, on=KEY + ["state", "sample"], suffixes=("_neu", "_nc")
+    # A no_chat answer (paraphrase 0 only) faces the neutral twins of every paraphrase:
+    # average those first, so n counts the no_chat answers and the bootstrap over them
+    # keeps their noise.
+    unit = KEY + ["state", "sample"]
+    neutral_mean = neutral.groupby(unit, as_index=False)["p_high"].mean()
+    text_pairs = neutral_mean.merge(
+        no_chat[unit + ["p_high"]], on=unit, suffixes=("_neu", "_nc")
     )
     text_pairs["diff"] = text_pairs["p_high_neu"] - text_pairs["p_high_nc"]
+    text_pairs["answer"] = text_pairs["state"] + "/" + text_pairs["sample"].astype(str)
     for key, g in text_pairs.groupby(KEY):
         out.append(
             {
@@ -241,7 +290,7 @@ def contrasts(df: pd.DataFrame) -> pd.DataFrame:
                 "hypothesis": "extra",
                 "contrast": "neutral - no_chat",
                 "expected": None,
-                **estimate(g["diff"], g["paraphrase_neu"], None),
+                **estimate(g["diff"], g["answer"], None),
             }
         )
     # Columns are fixed so that a run without the needed conditions (a pilot
@@ -253,14 +302,10 @@ def contrasts(df: pd.DataFrame) -> pd.DataFrame:
 
 def across(df: pd.DataFrame) -> pd.DataFrame:
     m = paired(df)
-    m = m[_main(m)]
+    m = m[is_main(m)]
     out = []
     for c in ACROSS:
-        side_a = m[(m["model"] == c.a) & (m["condition"] == c.condition)]
-        side_b = m[(m["model"] == c.b) & (m["condition"] == c.condition)]
-        x = side_a[STIMULUS + ["dp"]].merge(
-            side_b[STIMULUS + ["dp"]], on=STIMULUS, suffixes=("_a", "_b")
-        )
+        x = model_pairs(m, c.a, c.b, c.condition)
         if x.empty:
             continue
         out.append(
@@ -307,6 +352,17 @@ def runs(df: pd.DataFrame, quiz_dir: Path = QUIZ_DIR) -> pd.DataFrame:
     return pd.DataFrame(out)
 
 
+def full_runs(df: pd.DataFrame, quiz_dir: Path = QUIZ_DIR) -> pd.DataFrame:
+    """Runs that test hypotheses and ran the whole grid; the thinking variants ran a
+    subset of conditions and drop out. Columns: KEY."""
+    info = runs(df, quiz_dir)
+    tested = info.loc[info["role"] == "hypotheses", KEY]
+    m = df.merge(tested, on=KEY)
+    per_run = m.groupby(KEY)["condition"].nunique()
+    full = per_run[per_run == per_run.max()]
+    return full.reset_index()[KEY]
+
+
 def k_of_n(c: pd.DataFrame, info: pd.DataFrame) -> pd.DataFrame:
     """Per contrast: on how many of the hypothesis-testing models it is confirmed."""
     tested = info.loc[info["role"] == "hypotheses", KEY]
@@ -331,7 +387,7 @@ def k_of_n(c: pd.DataFrame, info: pd.DataFrame) -> pd.DataFrame:
 
 def monotone(s: pd.DataFrame, models: Sequence[str], conditions: Sequence[str]) -> dict:
     """dp along a sequence of models (one condition) or of conditions (one model)."""
-    main = s[_main(s)].set_index(["model", "condition"])["dp"]
+    main = s[is_main(s)].set_index(["model", "condition"])["dp"]
     keys = [(m, c) for m in models for c in conditions]
     if not all(k in main.index for k in keys):
         return {}
@@ -348,7 +404,7 @@ def level2_choice(df: pd.DataFrame, s: pd.DataFrame, info: pd.DataFrame) -> dict
     """Level-2 model and attack by the rules of docs/prereg/l1.md."""
     tested = set(info.loc[info["role"] == "hypotheses", "model"])
     candidates = [m for m in LEVEL2_CANDIDATES if m in tested]
-    main = s[_main(s)]
+    main = s[is_main(s)]
     fake = main[
         main["model"].isin(candidates) & (main["condition"] == "fake_fact_cred")
     ]
@@ -359,7 +415,10 @@ def level2_choice(df: pd.DataFrame, s: pd.DataFrame, info: pd.DataFrame) -> dict
     attacks = set(df.loc[df["kind"] == "attack", "condition"]) - {LEVEL2_FIXED_ARM}
     ranked = main[(main["model"] == model) & main["condition"].isin(attacks)]
     ranked = ranked.dropna(subset=["dp"]).sort_values("dp", ascending=False)
-    strong = ranked[(ranked["dp_lo"] > 0) & (ranked["dp"] >= MIN_EFFECT)]
+    confirmed = [
+        verdict(r.dp, r.dp_lo, r.dp_hi, ">0") == "yes" for r in ranked.itertuples()
+    ]
+    strong = ranked[confirmed]
     attack = strong["condition"].iloc[0] if len(strong) else None
     return {
         "model": model,
@@ -379,17 +438,24 @@ def by_paraphrase(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def _f(x, nd=2) -> str:
+def fnum(x, nd=2) -> str:
     return "-" if x is None or (isinstance(x, float) and np.isnan(x)) else f"{x:.{nd}f}"
+
+
+def md_table(header: Sequence[str], rows: Sequence[Sequence[str]]) -> list[str]:
+    lines = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
+    lines += ["| " + " | ".join(r) + " |" for r in rows]
+    return lines
 
 
 def _run_name(key: Sequence[str]) -> str:
     return " | ".join(str(k) for k in key if k and k != "a")
 
 
-def _ci(r: pd.Series) -> str:
-    # Three digits: an interval like [0.0002, 0.003] decides a verdict but reads as 0.00.
-    return f"{_f(r['mean'], 3)} [{_f(r['lo'], 3)}, {_f(r['hi'], 3)}]"
+def fmt_ci(r: pd.Series, nd: int = 3, point: str = "mean") -> str:
+    """'point [lo, hi]' of an estimate row. Three digits by default: an interval like
+    [0.0002, 0.003] decides a verdict but reads as 0.00."""
+    return f"{fnum(r[point], nd)} [{fnum(r['lo'], nd)}, {fnum(r['hi'], nd)}]"
 
 
 def _hypothesis_lines(
@@ -434,7 +500,7 @@ def _hypothesis_lines(
     for _, row in per_model.iterrows():
         lines.append(
             f"| {row['hypothesis']} | {row['contrast']} | {row['expected']} | {row['model']} | "
-            f"{_ci(row)} | {row['verdict']} |"
+            f"{fmt_ci(row)} | {row['verdict']} |"
         )
     if len(a):
         lines += [
@@ -448,25 +514,25 @@ def _hypothesis_lines(
             expected = row["expected"] if pd.notna(row["expected"]) else "-"
             lines.append(
                 f"| {row['hypothesis']} | {row['contrast']} | {row['condition']} | "
-                f"{expected} | {_ci(row)} | {row['verdict']} |"
+                f"{expected} | {fmt_ci(row)} | {row['verdict']} |"
             )
     lines += ["", "## Monotonicity (descriptive)", ""]
     sizes = monotone(s, SIZES, ["fake_fact_cred"])
     if sizes:
-        values = ", ".join(_f(v, 3) for v in sizes["values"])
+        values = ", ".join(fnum(v, 3) for v in sizes["values"])
         lines.append(
             f"- H2.1, dp(fake_fact_cred) of {', '.join(SIZES)}: {values}; decreasing: {sizes['decreasing']}"
         )
     for model in tested["model"]:
         doses = monotone(s, [model], SOCIAL_DOSES)
         if doses:
-            values = ", ".join(_f(v, 3) for v in doses["values"])
+            values = ", ".join(fnum(v, 3) for v in doses["values"])
             lines.append(
                 f"- H1.3, {model}, dp of {', '.join(SOCIAL_DOSES)}: {values}; increasing: {doses['increasing']}"
             )
     choice = level2_choice(df, s, info)
     if choice:
-        fake = ", ".join(f"{m} {_f(v, 3)}" for m, v in choice["fake_dp"].items())
+        fake = ", ".join(f"{m} {fnum(v, 3)}" for m, v in choice["fake_dp"].items())
         attack = choice["attack"] or f"none with lo > 0 and dp >= {MIN_EFFECT}"
         lines += [
             "",
@@ -480,7 +546,7 @@ def _hypothesis_lines(
         ]
         for _, row in choice["ranked"].iterrows():
             lines.append(
-                f"| {row['condition']} | {_f(row['dp'])} | [{_f(row['dp_lo'])}, {_f(row['dp_hi'])}] |"
+                f"| {row['condition']} | {fnum(row['dp'])} | [{fnum(row['dp_lo'])}, {fnum(row['dp_hi'])}] |"
             )
     lines.append("")
     return lines
@@ -520,15 +586,15 @@ def write(
         ]
         for _, row in g.iterrows():
             lines.append(
-                f"| {row['condition']} | {row['n']} | {row['valid']:.0%} | {_f(row['mean_p'])} | {_f(row.get('dp'))} | "
-                f"[{_f(row.get('dp_lo'))}, {_f(row.get('dp_hi'))}] | {_f(row.get('w'))} | {_f(row['buy'])} | "
-                f"{_f(row.get('buy_shift'))} | {_f(row['buy_130'])} | {_f(row['incoherence'], 1)} |"
+                f"| {row['condition']} | {row['n']} | {row['valid']:.0%} | {fnum(row['mean_p'])} | {fnum(row.get('dp'))} | "
+                f"[{fnum(row.get('dp_lo'))}, {fnum(row.get('dp_hi'))}] | {fnum(row.get('w'))} | {fnum(row['buy'])} | "
+                f"{fnum(row.get('buy_shift'))} | {fnum(row['buy_130'])} | {fnum(row['incoherence'], 1)} |"
             )
         group_contrasts = contrasts_by_group.get(key)
         if group_contrasts is not None:
             lines += ["", "| contrast | n | mean [lo, hi] |", "|---|---|---|"]
             lines += [
-                f"| {row['contrast']} | {row['n']} | {_ci(row)} |"
+                f"| {row['contrast']} | {row['n']} | {fmt_ci(row)} |"
                 for _, row in group_contrasts.iterrows()
             ]
         lines.append("")

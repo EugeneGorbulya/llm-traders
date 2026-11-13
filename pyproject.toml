@@ -10,9 +10,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-api = ["openai>=1.40", "anthropic>=0.40"]
+api = ["anthropic>=0.40"]
 nlp = ["sentence-transformers>=3.0", "transformers>=4.44", "torch>=2.3"]
-analysis = ["matplotlib>=3.8", "scipy>=1.11"]
+analysis = ["matplotlib>=3.8"]
 dev = ["pytest>=8.0"]
 
 [build-system]

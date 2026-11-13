@@ -21,7 +21,6 @@ EFFECTS = {
     "text_pumped": ("PA", "PN"),
     "price": ("PN", "RN"),
 }
-GROUPS = ["all", 70.0, 130.0]
 
 
 class Window(NamedTuple):
@@ -33,15 +32,25 @@ class Window(NamedTuple):
     minus: tuple[int, ...] = ()
 
 
+def after_start(cfg: dict) -> int:
+    # The chat window keeps the last manipulator message visible for chat_window - 1
+    # more periods, so "after" starts once it is gone.
+    return max(cfg["msg_periods"]) + SessionConfig.chat_window
+
+
+def price_seen(cfg: dict) -> tuple[int, ...]:
+    # The pumped price of period t is its trade price, which the agent first sees as
+    # the last price in t + 1 (P8 also brings official news, the same in every cell).
+    return tuple(t + 1 for t in cfg["pump_periods"])
+
+
 def windows() -> list[Window]:
     cfg = level15.load_config()
     msg = tuple(cfg["msg_periods"])
     before = tuple(range(1, min(msg)))
-    # The chat window keeps the last manipulator message visible for chat_window - 1
-    # more periods, so "after" starts once it is gone.
-    after_start = max(msg) + SessionConfig.chat_window
-    after = tuple(range(after_start, SessionConfig.n_periods + 1))
+    after = tuple(range(after_start(cfg), SessionConfig.n_periods + 1))
     last = max(msg)
+    seen = price_seen(cfg)
     return [
         # Sanity check: before the first message the cells see the same prompts.
         Window("text before", "text", before),
@@ -50,9 +59,9 @@ def windows() -> list[Window]:
         Window("accumulation: last - first message", "text", (last,), (min(msg),)),
         Window("decay: during - after", "text", msg, after),
         Window("news at P8: P8 - P7", "text", (last + 1,), (last,)),
-        Window("price during", "price", msg),
+        Window("price during", "price", seen),
         Window("price after", "price", after),
-        Window("interaction during", "interaction", msg),
+        Window("interaction during", "interaction", seen),
         Window("buys during", "buys", msg),
     ]
 
@@ -117,8 +126,8 @@ def contrasts(df: pd.DataFrame) -> pd.DataFrame:
         for w in windows():
             per_seed = _window_values(e, w)
             for model, g in per_seed.groupby("model"):
-                for group in GROUPS:
-                    x = g if group == "all" else g[g["value"] == group]
+                for group in analysis.SPLITS:
+                    x = analysis.split_rows(g, group)
                     out.append(
                         {
                             "model": model,
@@ -173,32 +182,29 @@ def curves(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def recovery(c: pd.DataFrame) -> pd.DataFrame:
-    """First period after the messages where the mean text effect is below MIN_EFFECT."""
-    cfg = level15.load_config()
-    last = max(cfg["msg_periods"])
+    """First period after the messages left the chat window where the mean text effect
+    is below MIN_EFFECT."""
+    start = after_start(level15.load_config())
     out = []
     for (model, attack), g in c.groupby(["model", "attack"]):
-        after = g[g["period"] > last]
+        after = g[g["period"] >= start]
         below = after[after["text"].abs() < analysis.MIN_EFFECT]
         period = int(below["period"].min()) if len(below) else None
         out.append({"model": model, "attack": attack, "recovered_at": period})
     return pd.DataFrame(out)
 
 
-def _ci(r: pd.Series) -> str:
-    f = analysis._f
-    return f"{f(r['mean'], 3)} [{f(r['lo'], 3)}, {f(r['hi'], 3)}]"
-
-
 def write(dirs: Sequence[Path], out: Path) -> dict[str, pd.DataFrame]:
     df = load(dirs)
     con, cur = contrasts(df), curves(df)
     rec = recovery(cur)
+    seeds = df.groupby("model")["seed"].nunique()
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     con.to_csv(out / "contrasts.csv", index=False)
     cur.to_csv(out / "curves.csv", index=False)
-    f = analysis._f
+    f = analysis.fnum
+    seen = price_seen(level15.load_config())
     lines = [
         "# Level 1.5",
         "",
@@ -206,17 +212,19 @@ def write(dirs: Sequence[Path], out: Path) -> dict[str, pd.DataFrame]:
         "the sampling seeds, so every effect is a paired difference within a seed.",
         "text = RA - RN, price = PN - RN, interaction = (PA - PN) - (RA - RN);",
         "buys = share of buys RA - RN. [lo, hi] = 95% bootstrap over seeds. No verdicts.",
+        f"Price and interaction 'during' = P{min(seen)}-P{max(seen)}: the agent sees a",
+        "period's pumped price as the last price of the next period.",
         "",
     ]
     for (model, attack), g in con.groupby(["model", "attack"], sort=False):
         lines += [
-            f"## {model}, {attack}",
+            f"## {model}, {attack}, {seeds[model]} seeds",
             "",
             "| contrast | all seeds | value 70 | value 130 |",
             "|---|---|---|---|",
         ]
         for name, h in g.groupby("contrast", sort=False):
-            by = {r["value"]: _ci(r) for _, r in h.iterrows()}
+            by = {r["value"]: analysis.fmt_ci(r) for _, r in h.iterrows()}
             lines.append(
                 f"| {name} | {by.get('all', '-')} | {by.get(70.0, '-')} | {by.get(130.0, '-')} |"
             )
@@ -227,7 +235,7 @@ def write(dirs: Sequence[Path], out: Path) -> dict[str, pd.DataFrame]:
         )
         lines += [
             "",
-            f"Text effect below {analysis.MIN_EFFECT} after the messages: {recovered}.",
+            f"Text effect below {analysis.MIN_EFFECT} after the messages left the chat: {recovered}.",
             "",
             "| period | RN | PN | RA | PA | Bayes | text [lo, hi] | price | interaction |",
             "|---|---|---|---|---|---|---|---|---|",

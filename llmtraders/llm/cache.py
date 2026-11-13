@@ -17,7 +17,7 @@ def make_key(payload: dict[str, Any]) -> str:
 
 
 class ResponseCache:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(self.path))

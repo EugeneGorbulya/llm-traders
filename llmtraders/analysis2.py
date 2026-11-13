@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from . import analysis, level2
-from .analysis import _f
+from .analysis import fmt_ci, fnum
 from .bayes import HIGH, LOW
 from .core import N_PERIODS
 from .market import CONTROL
@@ -18,7 +18,6 @@ from .results import read_jsonl
 
 # The level-1 threshold |dp| >= 0.02 in price units (value = 70 + 60 p): 1.2.
 MIN_PRICE = analysis.MIN_EFFECT * (HIGH - LOW)
-VALUES = ("all", 70.0, 130.0)
 # The expectation "the interval contains 0" of H4.1 (K1 - K0) in docs/prereg/l2.md.
 CONTAINS_0 = "contains 0"
 SEEING = "seeing"
@@ -33,6 +32,33 @@ def price_levels(prices: Sequence[float | None]) -> list[float]:
             last = p
         out.append(last)
     return out
+
+
+def blind_agents(cfg: dict[str, Any], configuration: str) -> set[str]:
+    """The LLM traders of a configuration who do not see the chat."""
+    spec = cfg["main"]["configurations"][configuration]
+    return {f"{level2.LLM}{i}" for i in spec.get("blind", [])}
+
+
+def records(model_dir: Path, kind: str) -> Iterator[dict[str, Any]]:
+    """Records of one kind ("period" or "session") of every <configuration>/<seed
+    set>/sessions.jsonl under model_dir."""
+    for path in sorted(Path(model_dir).glob("*/*/sessions.jsonl")):
+        for r in read_jsonl(path):
+            if r["kind"] == kind:
+                yield r
+
+
+def paired(
+    frame: pd.DataFrame, keys: Sequence[str], columns: Sequence[str]
+) -> pd.DataFrame:
+    """The attack-arm rows with the control of the same keys: each of `columns` gets
+    its `<column>_control`. A control row is unique per key, or the pairs would multiply."""
+    control = frame[frame["arm"] == CONTROL][[*keys, *columns]]
+    attacks = frame[frame["arm"] != CONTROL]
+    return attacks.merge(
+        control, on=keys, suffixes=("", "_control"), validate="many_to_one"
+    )
 
 
 def load(model_dir: Path, cfg: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -50,8 +76,7 @@ def load(model_dir: Path, cfg: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFra
                 traded[key] = traded.get(key, 0) + int(any(fills))
                 continue
             conf = r["configuration"]
-            spec = main["configurations"][conf]
-            blind = {f"{level2.LLM}{i}" for i in spec.get("blind", [])}
+            blind = blind_agents(cfg, conf)
             llm = [k for k in r["invalid"] if k.startswith(level2.LLM)]
             manip_start = r["initial"][level2.MANIP]["wealth"]
             row = {
@@ -86,9 +111,7 @@ def price_shifts(s: pd.DataFrame) -> pd.DataFrame:
     """Per configuration, seed and attack arm: window price level and manipulator
     profit, attack minus control of the same seed."""
     keys = ["configuration", "seed", "value"]
-    control = s[s["arm"] == CONTROL][[*keys, "level", "manip_profit"]]
-    attacks = s[s["arm"] != CONTROL]
-    m = attacks.merge(control, on=keys, suffixes=("", "_control"))
+    m = paired(s, keys, ["level", "manip_profit"])
     m["price_shift"] = m["level"] - m["level_control"]
     m["profit_shift"] = m["manip_profit"] - m["manip_profit_control"]
     return m
@@ -100,13 +123,20 @@ def belief_shifts(b: pd.DataFrame, periods: Sequence[int]) -> pd.DataFrame:
     first, last = periods
     keys = ["configuration", "seed", "value", "agent", "group", "period"]
     w = b[b["period"].between(first, last)]
-    control = w[w["arm"] == CONTROL][[*keys, "p"]]
-    attacks = w[w["arm"] != CONTROL]
-    m = attacks.merge(control, on=keys, suffixes=("", "_control"))
+    m = paired(w, keys, ["p"])
     m["shift"] = m["p"] - m["p_control"]
     m = m.dropna(subset=["shift"])
     by = ["configuration", "arm", "group", "seed", "value"]
     return m.groupby(by, as_index=False)["shift"].mean()
+
+
+def shifts(
+    model_dir: Path, cfg: dict[str, Any]
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Sessions, price shifts and belief shifts of the main runs of a model."""
+    periods = cfg["main"]["analysis"]["periods"]
+    s, b = load(model_dir, cfg)
+    return s, price_shifts(s), belief_shifts(b, periods)
 
 
 def strata_ci(x: pd.Series, strata: pd.Series) -> tuple[float, float]:
@@ -130,10 +160,12 @@ def estimate(
 ) -> dict[str, Any]:
     lo, hi = strata_ci(x, value)
     mean = float(x.mean())
-    if expected == CONTAINS_0:
-        verdict = "-" if np.isnan(lo) else ("yes" if lo <= 0 <= hi else "no")
-    else:
+    if expected != CONTAINS_0:
         verdict = analysis.verdict(mean, lo, hi, expected, threshold)
+    elif np.isnan(lo):
+        verdict = "-"
+    else:
+        verdict = "yes" if lo <= 0 <= hi else "no"
     return {
         "n": int(x.notna().sum()),
         "mean": mean,
@@ -211,8 +243,8 @@ def by_arm(ps: pd.DataFrame, bs: pd.DataFrame) -> pd.DataFrame:
     shift of the traders who see the chat is the secondary metric, with a verdict."""
     rows = []
     for (conf, arm), g in ps.groupby(["configuration", "arm"], sort=False):
-        for value in VALUES:
-            x = g if value == "all" else g[g["value"] == value]
+        for value in analysis.SPLITS:
+            x = analysis.split_rows(g, value)
             for metric in ("price_shift", "profit_shift"):
                 est = estimate(x[metric], x["value"], None, MIN_PRICE)
                 key = {"configuration": conf, "arm": arm, "value": value}
@@ -220,8 +252,8 @@ def by_arm(ps: pd.DataFrame, bs: pd.DataFrame) -> pd.DataFrame:
     for (conf, arm, group), g in bs.groupby(
         ["configuration", "arm", "group"], sort=False
     ):
-        for value in VALUES:
-            x = g if value == "all" else g[g["value"] == value]
+        for value in analysis.SPLITS:
+            x = analysis.split_rows(g, value)
             secondary = group == SEEING and value == "all"
             expected = ">0" if secondary else None
             est = estimate(x["shift"], x["value"], expected, analysis.MIN_EFFECT)
@@ -241,15 +273,11 @@ def topup(ps: pd.DataFrame, fake: str, half_width: float) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _ci(r: pd.Series, nd: int) -> str:
-    return f"{_f(r['mean'], nd)} [{_f(r['lo'], nd)}, {_f(r['hi'], nd)}]"
-
-
 def _value_cells(t: pd.DataFrame, nd: int) -> str:
     cells = []
-    for value in VALUES:
+    for value in analysis.SPLITS:
         r = t[t["value"] == value].iloc[0]
-        cells.append(_ci(r, nd))
+        cells.append(fmt_ci(r, nd))
     return " | ".join(cells)
 
 
@@ -259,9 +287,7 @@ def write(model_dir: Path, config: Path = level2.CONFIG) -> dict[str, pd.DataFra
     fake, injection = main["attacks"]
     periods = main["analysis"]["periods"]
     limit = main["analysis"]["topup_half_width"]
-    s, b = load(model_dir, cfg)
-    ps = price_shifts(s)
-    bs = belief_shifts(b, periods)
+    s, ps, bs = shifts(model_dir, cfg)
     hyp = hypotheses(ps, bs, fake, injection)
     arms = by_arm(ps, bs)
     top = topup(ps, fake, limit)
@@ -293,8 +319,8 @@ def write(model_dir: Path, config: Path = level2.CONFIG) -> dict[str, pd.DataFra
     for _, r in top.iterrows():
         over = "yes" if r["over"] else "no"
         lines.append(
-            f"| {r['configuration']} | {r['n']} | {_ci(r, 2)} | "
-            f"{_f(r['half_width'], 2)} | {over} |"
+            f"| {r['configuration']} | {r['n']} | {fmt_ci(r, 2)} | "
+            f"{fnum(r['half_width'], 2)} | {over} |"
         )
     decision = "run the top-up seeds in all configurations" if needed else "no top-up"
     # The pre-registration allows one top-up: once its seeds are in, the rule is spent.
@@ -310,7 +336,7 @@ def write(model_dir: Path, config: Path = level2.CONFIG) -> dict[str, pd.DataFra
         nd = 3 if "belief" in r["contrast"] else 2
         lines.append(
             f"| {r['hypothesis']} | {r['contrast']} | {r['expected']} | {r['n']} | "
-            f"{_ci(r, nd)} | {r['verdict']} |"
+            f"{fmt_ci(r, nd)} | {r['verdict']} |"
         )
     sections = [
         ("price_shift", "Price shift", 2),
@@ -348,9 +374,9 @@ def write(model_dir: Path, config: Path = level2.CONFIG) -> dict[str, pd.DataFra
         "|---|---|---|",
     ]
     for (conf, arm), v in traded.items():
-        lines.append(f"| {conf} | {arm} | {_f(v, 1)} |")
+        lines.append(f"| {conf} | {arm} | {fnum(v, 1)} |")
     flags = [
-        f"{conf} {_f(v, 3)}" + (" (over 10%)" if v > analysis.INVALID_FLAG else "")
+        f"{conf} {fnum(v, 3)}" + (" (over 10%)" if v > analysis.INVALID_FLAG else "")
         for conf, v in share.items()
     ]
     lines += ["", f"Invalid LLM answers: {', '.join(flags)}.", ""]

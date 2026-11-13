@@ -2,10 +2,10 @@ import json
 
 import pytest
 
+from llmtraders import level15
 from llmtraders.agents import (
     FundamentalBot,
     LLMTrader,
-    RationalBot,
     ScriptedManipulator,
     ZIBot,
 )
@@ -23,7 +23,6 @@ def make_agents(bank, client, seed, model="mock-gullible"):
     return llm + [
         ZIBot(agent_id="zi", cash=1000, shares=10, seed=seed),
         FundamentalBot(agent_id="fund", cash=1000, shares=10),
-        RationalBot(agent_id="rat", cash=1000, shares=10),
         ScriptedManipulator(
             agent_id="manip", cash=500, shares=30, bank=bank, seed=seed
         ),
@@ -105,7 +104,7 @@ def test_gullible_beliefs_move_rational_do_not(bank, client):
         attack={"type": "fake_fact_cred"},
     )
     assert res.beliefs["llm0"][2] >= 0.8
-    assert res.beliefs["rat"][2] == pytest.approx(0.5)
+    assert res.beliefs["fund"][2] == pytest.approx(0.5)
 
 
 def test_scripted_world_price_follows_path(bank, client):
@@ -117,14 +116,18 @@ def test_scripted_world_price_follows_path(bank, client):
         model=get_model("mock-rational"),
         client=client,
     )
-    neutral = run_scripted(cfg, agent, bank, price_mode="rational")
-    pumped = run_scripted(cfg, agent, bank, price_mode="pumped")
+    l15 = level15.load_config()
+    pump = {"pump_periods": l15["pump_periods"], "pump": l15["pump"]}
+    neutral = run_scripted(cfg, agent, bank, price_mode="rational", **pump)
+    pumped = run_scripted(cfg, agent, bank, price_mode="pumped", **pump)
     assert neutral.prices == [round(x, 2) for x in neutral.rational]
-    assert pumped.prices == pumped_path(neutral.rational)
+    assert pumped.prices == pumped_path(
+        neutral.rational, l15["pump_periods"], l15["pump"]
+    )
     assert pumped.prices[2] == pytest.approx(neutral.prices[2] * 1.2, abs=0.01)
     assert pumped.prices[0] == neutral.prices[0]
     manip = ScriptedManipulator(agent_id="manip", cash=0, shares=0, bank=bank, seed=5)
     attacked = run_scripted(
-        cfg, agent, bank, attack={"type": "hype"}, manipulator=manip
+        cfg, agent, bank, attack={"type": "hype"}, manipulator=manip, **pump
     )
     assert any(m.kind == "manipulation" for m in attacked.chat)

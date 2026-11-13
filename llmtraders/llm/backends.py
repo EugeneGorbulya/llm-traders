@@ -1,4 +1,4 @@
-"""Model backends: Ollama, OpenAI-compatible, Anthropic."""
+"""Model backends: Ollama, Anthropic, and the mock of the tests."""
 
 from __future__ import annotations
 
@@ -96,7 +96,7 @@ class OllamaBackend(Backend):
             "messages": messages,
             "stream": False,
             "options": options,
-            "keep_alive": cfg.extra.get("keep_alive", "30m"),
+            "keep_alive": "30m",
         }
         if schema is not None:
             payload["format"] = schema
@@ -116,64 +116,6 @@ class OllamaBackend(Backend):
         )
 
 
-# для API-моделей (гейт 1, если будет доступ)
-class OpenAICompatBackend(Backend):
-    def __init__(self) -> None:
-        self._clients: dict[str, Any] = {}
-
-    def _client(self, cfg: ModelConfig):
-        key = f"{cfg.base_url}|{cfg.api_key_env}"
-        if key not in self._clients:
-            from openai import OpenAI
-
-            api_key = os.environ.get(cfg.api_key_env or "OPENAI_API_KEY")
-            if not api_key:
-                raise RuntimeError(
-                    f"set {cfg.api_key_env or 'OPENAI_API_KEY'} for model {cfg.name}"
-                )
-            self._clients[key] = (
-                OpenAI(api_key=api_key, base_url=cfg.base_url)
-                if cfg.base_url
-                else OpenAI(api_key=api_key)
-            )
-        return self._clients[key]
-
-    def generate(
-        self,
-        cfg: ModelConfig,
-        messages: list[dict[str, str]],
-        schema: dict | None,
-        seed: int | None,
-    ) -> RawResponse:
-        kwargs: dict[str, Any] = {"model": cfg.model, "messages": messages}
-        for k in ("temperature", "top_p"):
-            if k in cfg.options:
-                kwargs[k] = cfg.options[k]
-        if seed is not None and cfg.extra.get("send_seed", True):
-            kwargs["seed"] = seed
-        if cfg.max_tokens:
-            kwargs["max_tokens"] = cfg.max_tokens
-        if cfg.think in ("low", "medium", "high"):
-            kwargs["reasoning_effort"] = cfg.think
-        if schema is not None:
-            kwargs["response_format"] = {
-                "type": "json_schema",
-                "json_schema": {"name": "answer", "schema": schema, "strict": True},
-            }
-        kwargs.update(cfg.extra.get("request", {}))
-        t0 = time.perf_counter()
-        r = self._client(cfg).chat.completions.create(**kwargs)
-        dt = (time.perf_counter() - t0) * 1000
-        u = getattr(r, "usage", None)
-        return RawResponse(
-            text=r.choices[0].message.content or "",
-            tokens_in=getattr(u, "prompt_tokens", None),
-            tokens_out=getattr(u, "completion_tokens", None),
-            latency_ms=dt,
-            extra={"system_fingerprint": getattr(r, "system_fingerprint", None)},
-        )
-
-
 # API models of gate 1: claude-haiku-5.5 and claude-sonnet-5.5 on the level-1 grid.
 class AnthropicBackend(Backend):
     def __init__(self) -> None:
@@ -186,9 +128,9 @@ class AnthropicBackend(Backend):
         schema: dict | None,
         seed: int | None,
     ) -> RawResponse:
-        if self._client is None:
-            import anthropic
+        import anthropic  # the optional extra "api"
 
+        if self._client is None:
             self._client = anthropic.Anthropic(
                 api_key=os.environ.get(cfg.api_key_env or "ANTHROPIC_API_KEY")
             )
@@ -212,7 +154,20 @@ class AnthropicBackend(Backend):
                 "format": {"type": "json_schema", "schema": schema}
             }
         t0 = time.perf_counter()
-        r = self._client.messages.create(**kwargs)
+        # The client sorts failures by the urllib errors of Ollama (decision 5): 5xx and
+        # 529 (overloaded) or a timeout are a failed answer, a 4xx is a setup error and
+        # no connection stops the run.
+        try:
+            r = self._client.messages.create(**kwargs)
+        except anthropic.APITimeoutError as e:
+            raise TimeoutError(e.message) from e
+        except anthropic.APIConnectionError as e:
+            raise ConnectionError(e.message) from e
+        except anthropic.APIStatusError as e:
+            url = str(e.request.url)
+            raise urllib.error.HTTPError(
+                url, e.status_code, e.message, None, None
+            ) from e
         dt = (time.perf_counter() - t0) * 1000
         text = "".join(b.text for b in r.content if b.type == "text")
         thinking_text = next(
@@ -231,8 +186,6 @@ class AnthropicBackend(Backend):
 def make_backend(name: str) -> Backend:
     if name == "ollama":
         return OllamaBackend()
-    if name == "openai_compat":
-        return OpenAICompatBackend()
     if name == "anthropic":
         return AnthropicBackend()
     if name == "mock":

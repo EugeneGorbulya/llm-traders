@@ -11,7 +11,7 @@ import yaml
 from ..core import ROOT
 
 MODELS_YAML = ROOT / "configs" / "models.yaml"
-THINK_VALUES = (None, False, True, "low", "medium", "high")
+THINK_VALUES = (None, False, True, "low", "high")
 
 
 @dataclass

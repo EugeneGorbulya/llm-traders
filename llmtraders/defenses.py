@@ -9,14 +9,14 @@ from typing import Any, NamedTuple
 
 import numpy as np
 import pandas as pd
-import yaml
 
 from . import analysis, level1
 from .chat import MessageBank
 from .core import ROOT
+from .results import load_yaml, read_jsonl
 
 CONFIG = ROOT / "configs" / "defenses.yaml"
-# Manual labels of the feed texts: the ground truth for D4 as a classifier.
+# Labels of the feed texts (data/labels/d4_feed.csv): the ground truth for D4 as a classifier.
 LABELS = ROOT / "data" / "labels" / "d4_feed.csv"
 # The same stimulus with and without a defense: one model, one sampling seed.
 STIMULUS = ["model", "paraphrase", "state", "sample"]
@@ -59,7 +59,7 @@ AXES = H31_AXES + [
 
 
 def load_config(path: Path = CONFIG) -> dict[str, Any]:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return load_yaml(path)
 
 
 def feed_texts() -> list[str]:
@@ -136,9 +136,11 @@ def axes(df: pd.DataFrame) -> pd.DataFrame:
             elif ax.diff == "none - defended":
                 diff = x[f"{ax.metric}_0"] - x[f"{ax.metric}_d"]
                 clusters = x["paraphrase"]
-            else:
+            elif ax.diff == "defended - none":
                 diff = x[f"{ax.metric}_d"] - x[f"{ax.metric}_0"]
                 clusters = x["paraphrase"]
+            else:
+                raise ValueError(f"unknown diff {ax.diff!r}")
             rule = None if ax.expected == NOT_BELOW else ax.expected
             est = analysis.estimate(diff, clusters, rule)
             est["verdict"] = _verdict(est, ax.expected)
@@ -261,31 +263,56 @@ def by_condition(df: pd.DataFrame) -> pd.DataFrame:
     return s.merge(dist, on=analysis.KEY + ["condition"], how="left")
 
 
-def d4_messages(df: pd.DataFrame) -> pd.DataFrame:
-    """One row per chat message the D4 filter labeled (valid filter answers only)."""
+LEVEL1_TAGS = ("condition", "paraphrase", "state", "sample")
+
+
+def filter_labels(calls: Path, tags: Sequence[str]) -> dict[tuple, set[int]]:
+    """Message ids each valid D4 filter answer labeled, by (model, *tags) of the call.
+
+    The validator checks types only: qwen3-4b sometimes skips an id or writes -4 for 4,
+    and a message without a label passes the filter as harmless."""
+    out = {}
+    for c in read_jsonl(calls):
+        if c["tags"].get("role") != "filter" or not c["valid"]:
+            continue
+        key = (c["model"], *(c["tags"][t] for t in tags))
+        out[key] = {int(i) for i in c["parsed"]["flags"]}
+    return out
+
+
+def d4_messages(df: pd.DataFrame, labeled: dict[tuple, set[int]]) -> pd.DataFrame:
+    """One row per chat message shown to the D4 filter (valid filter answers only)."""
     if "filter_valid" not in df:
         return pd.DataFrame()
     rows = df[df["defenses"].str.contains("D4") & df["filter_valid"].eq(True)]
     out = []
-    for r in rows.itertuples(index=False):
-        for m in r.filter:
+    for answer, r in enumerate(rows.itertuples(index=False)):
+        ids = labeled[(r.model, r.condition, r.paraphrase, r.state, r.sample)]
+        for i, m in enumerate(r.filter, start=1):
             out.append(
                 {
                     "model": r.model,
+                    "answer": answer,
                     "condition": r.condition,
                     "feed_kind": r.kind,
                     "paraphrase": r.paraphrase,
                     "text": m["text"],
                     "construction": m["kind"] == "manipulation",
+                    "labeled": i in ids,
                     "flagged": bool(m["flagged"]),
                 }
             )
     return pd.DataFrame(out)
 
 
-def d4_metrics(df: pd.DataFrame, labels: dict[str, bool] | None) -> pd.DataFrame:
-    """D4 as a classifier, per model; truth = manual labels, else how the feed was built."""
-    msgs = d4_messages(df)
+def d4_metrics(
+    df: pd.DataFrame,
+    labels: dict[str, bool] | None,
+    labeled: dict[tuple, set[int]],
+) -> pd.DataFrame:
+    """D4 as a classifier, per model; truth = the label sheet, else how the feed was built.
+    `labeled`: the ids each filter answer labeled (filter_labels)."""
+    msgs = d4_messages(df, labeled)
     if msgs.empty:
         return pd.DataFrame()
     d4_rows = df[df["defenses"].str.contains("D4") & df["kind"].ne("no_chat")]
@@ -304,8 +331,11 @@ def d4_metrics(df: pd.DataFrame, labels: dict[str, bool] | None) -> pd.DataFrame
         fn = int((~flagged & truth).sum())
         precision = tp / (tp + fp) if tp + fp else np.nan
         recall = tp / (tp + fn) if tp + fn else np.nan
+        # Sensitivity: recall without the messages the filter's answer left unlabeled.
+        on_labeled = g["labeled"] & truth
+        recall_labeled = (flagged & on_labeled).sum() / on_labeled.sum()
         f1 = 2 * precision * recall / (precision + recall) if tp else np.nan
-        # Benign chat: feeds without an attack, messages a human calls harmless.
+        # Benign chat: feeds without an attack, messages the labels call harmless.
         benign = g[g["feed_kind"].isin(["neutral", "official"]) & ~truth]
         false_alarm = analysis.estimate(
             benign["flagged"].astype(float), benign["paraphrase"], ">0"
@@ -319,12 +349,14 @@ def d4_metrics(df: pd.DataFrame, labels: dict[str, bool] | None) -> pd.DataFrame
                 "model": model,
                 "truth": "construction" if labels is None else "manual",
                 "filter_valid": float(model_rows["filter_valid"].fillna(False).mean()),
+                "complete": float(g.groupby("answer")["labeled"].all().mean()),
                 "messages": len(g),
                 "tp": tp,
                 "fp": fp,
                 "fn": fn,
                 "precision": precision,
                 "recall": recall,
+                "recall_labeled": float(recall_labeled),
                 "f1": f1,
                 "false_alarm": false_alarm["mean"],
                 "false_alarm_lo": false_alarm["lo"],
@@ -336,10 +368,6 @@ def d4_metrics(df: pd.DataFrame, labels: dict[str, bool] | None) -> pd.DataFrame
     return pd.DataFrame(out)
 
 
-def _ci(r: pd.Series) -> str:
-    return f"{analysis._f(r['mean'], 3)} [{analysis._f(r['lo'], 3)}, {analysis._f(r['hi'], 3)}]"
-
-
 def write(
     dirs: Sequence[Path], out: Path, labels_path: Path = LABELS
 ) -> dict[str, pd.DataFrame]:
@@ -347,7 +375,10 @@ def write(
     if not (df["defenses"] != "").any():
         raise ValueError("no defense runs among the directories")
     labels = read_labels(labels_path)
-    ax, bc, d4 = axes(df), by_condition(df), d4_metrics(df, labels)
+    labeled: dict[tuple, set[int]] = {}
+    for d in dirs:
+        labeled |= filter_labels(Path(d) / "calls.jsonl", LEVEL1_TAGS)
+    ax, bc, d4 = axes(df), by_condition(df), d4_metrics(df, labels, labeled)
     base = baseline(df)
     dec = decisions(ax, base, d4)
     kn = k_of_n(dec)
@@ -392,7 +423,9 @@ def write(
         "|---|---|---|---|",
     ]
     for _, r in base.iterrows():
-        lines.append(f"| {r['model']} | {r['condition']} | {_ci(r)} | {r['verdict']} |")
+        lines.append(
+            f"| {r['model']} | {r['condition']} | {analysis.fmt_ci(r)} | {r['verdict']} |"
+        )
     lines += [
         "",
         "## Three axes",
@@ -404,27 +437,33 @@ def write(
         expected = r["expected"] if pd.notna(r["expected"]) else "-"
         lines.append(
             f"| {r['model']} | {r['defense']} | {r['hypothesis']} | {r['measure']} | "
-            f"{r['condition']} | {r['diff']} | {expected} | {_ci(r)} | {r['verdict']} |"
+            f"{r['condition']} | {r['diff']} | {expected} | {analysis.fmt_ci(r)} | {r['verdict']} |"
         )
     lines += [
         "",
         "## D4 as a classifier",
         "",
+        "complete = share of valid filter answers that label every message id. A message",
+        "without a label passes the filter, so recall counts it as missed; recall, labeled",
+        "only = the same without such messages.",
+        "",
         (
-            "| model | truth | filter valid | messages | precision | recall | F1 | "
-            "false alarms on benign chat [lo, hi] | H3.2 | manual = construction |"
+            "| model | truth | filter valid | complete | messages | precision | recall | "
+            "recall, labeled only | F1 | false alarms on benign chat [lo, hi] | H3.2 | "
+            "manual = construction |"
         ),
-        "|---|---|---|---|---|---|---|---|---|---|",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for _, r in d4.iterrows():
         alarm = (
-            f"{analysis._f(r['false_alarm'], 3)} "
-            f"[{analysis._f(r['false_alarm_lo'], 3)}, {analysis._f(r['false_alarm_hi'], 3)}]"
+            f"{analysis.fnum(r['false_alarm'], 3)} "
+            f"[{analysis.fnum(r['false_alarm_lo'], 3)}, {analysis.fnum(r['false_alarm_hi'], 3)}]"
         )
         lines.append(
-            f"| {r['model']} | {r['truth']} | {r['filter_valid']:.0%} | {r['messages']} | "
-            f"{analysis._f(r['precision'])} | {analysis._f(r['recall'])} | {analysis._f(r['f1'])} | "
-            f"{alarm} | {r['false_alarm_verdict']} | {analysis._f(r['manual_vs_construction'])} |"
+            f"| {r['model']} | {r['truth']} | {r['filter_valid']:.0%} | {r['complete']:.0%} | "
+            f"{r['messages']} | {analysis.fnum(r['precision'])} | {analysis.fnum(r['recall'])} | "
+            f"{analysis.fnum(r['recall_labeled'])} | {analysis.fnum(r['f1'])} | "
+            f"{alarm} | {r['false_alarm_verdict']} | {analysis.fnum(r['manual_vs_construction'])} |"
         )
     for model, g in bc.groupby("model", sort=False):
         lines += [
@@ -436,9 +475,9 @@ def write(
         ]
         for _, r in g.iterrows():
             lines.append(
-                f"| {r['condition']} | {r['defenses'] or 'none'} | {analysis._f(r.get('dp'))} | "
-                f"[{analysis._f(r.get('dp_lo'))}, {analysis._f(r.get('dp_hi'))}] | "
-                f"{analysis._f(r.get('buy_shift'))} | {analysis._f(r['bayes_dist'])} |"
+                f"| {r['condition']} | {r['defenses'] or 'none'} | {analysis.fnum(r.get('dp'))} | "
+                f"[{analysis.fnum(r.get('dp_lo'))}, {analysis.fnum(r.get('dp_hi'))}] | "
+                f"{analysis.fnum(r.get('buy_shift'))} | {analysis.fnum(r['bayes_dist'])} |"
             )
     lines.append("")
     (out / "defenses.md").write_text("\n".join(lines), encoding="utf-8")

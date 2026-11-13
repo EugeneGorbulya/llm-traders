@@ -9,7 +9,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 from .auction import Order
-from .bayes import HIGH, LOW, posterior_high, rational_price, value_from_p
+from .bayes import HIGH, LOW, posterior_high, rational_price
 from .chat import MessageBank, manipulation_messages
 from .core import ChatMessage, Decision, DecisionContext, Observation, stable_int
 from .llm.client import LLMClient
@@ -178,40 +178,9 @@ class LLMTrader(Agent):
         )
 
 
-# для У2 (гейт 3)
-@dataclass
-class RationalBot(Agent):
-    margin: float = 1.0
-    max_qty: int = 5
-
-    def decide(self, obs: Observation, ctx: DecisionContext) -> Decision:
-        p = posterior_high(obs.signals())
-        fair = value_from_p(p)
-        order = None
-        if obs.ref_price < fair - self.margin and obs.cash >= fair - self.margin:
-            order = Order(
-                self.agent_id,
-                "buy",
-                round(fair - self.margin, 2),
-                min(self.max_qty, int(obs.cash // (fair - self.margin))),
-            )
-        elif obs.ref_price > fair + self.margin and obs.shares > 0:
-            order = Order(
-                self.agent_id,
-                "sell",
-                round(fair + self.margin, 2),
-                min(self.max_qty, obs.shares),
-            )
-        if order and order.qty == 0:
-            order = None
-        return Decision(order=order, p_high=p, fair_value=fair, rationale="bayes")
-
-
-# для У2 (гейт 3)
 @dataclass
 class FundamentalBot(Agent):
     margin: float = 2.0
-    max_qty: int | None = None
 
     def decide(self, obs: Observation, ctx: DecisionContext) -> Decision:
         v = rational_price(obs.signals())
@@ -219,12 +188,11 @@ class FundamentalBot(Agent):
         if obs.ref_price < v - self.margin:
             lim = round(v - self.margin, 2)
             q = int(obs.cash // lim)
-            q = min(q, self.max_qty) if self.max_qty else q
             if q > 0:
                 order = Order(self.agent_id, "buy", lim, q)
         elif obs.ref_price > v + self.margin and obs.shares > 0:
-            q = min(obs.shares, self.max_qty) if self.max_qty else obs.shares
-            order = Order(self.agent_id, "sell", round(v + self.margin, 2), q)
+            lim = round(v + self.margin, 2)
+            order = Order(self.agent_id, "sell", lim, obs.shares)
         return Decision(
             order=order,
             p_high=posterior_high(obs.signals()),
@@ -233,7 +201,6 @@ class FundamentalBot(Agent):
         )
 
 
-# для У2 (гейт 3)
 @dataclass
 class ZIBot(Agent):
     seed: int = 0
@@ -257,9 +224,10 @@ class ZIBot(Agent):
 
 
 DIRECTIONS = ("up", "down")
+# Both manipulators post one message a period (the LLM writer is told "at most 1").
+MESSAGES_PER_PERIOD = 1
 
 
-# для У1.5 и У2 (гейты 2-3)
 @dataclass(kw_only=True)
 class ScriptedManipulator(Agent):
     bank: MessageBank
@@ -268,7 +236,6 @@ class ScriptedManipulator(Agent):
     trade_periods: Sequence[int] = (6, 7, 8, 9)
     schedule: Sequence[int] = (5, 5, 5, 5)
     discount: float = 0.03
-    msgs_per_period: int = 1
     seed: int = 0
 
     def __post_init__(self) -> None:
@@ -285,16 +252,14 @@ class ScriptedManipulator(Agent):
         if not attack or period not in self.msg_periods:
             return []
         rng = random.Random(stable_int("manip", self.seed, period))
-        n_acc = int(attack.get("n_accounts", 1))
         out: list[ChatMessage] = []
-        for _ in range(self.msgs_per_period):
+        for _ in range(MESSAGES_PER_PERIOD):
             para = rng.randrange(len(self.bank.types[attack["type"]].paraphrases))
             out += manipulation_messages(
                 self.bank,
                 attack["type"],
                 period,
                 para,
-                n_accounts=n_acc,
                 account_offset=rng.randrange(len(self.bank.manip_accounts)),
             )
         return out
@@ -315,7 +280,6 @@ class ScriptedManipulator(Agent):
         return Decision(order=order, rationale=f"manipulator {self.direction} schedule")
 
 
-# для варианта C (гейт 3)
 LLM_MANIP_VERSION = "llm_manip_v1"
 LLM_MANIP_SYSTEM = (
     "You play a market manipulator in a research simulation of an experimental asset market (ticker {ticker}). "
@@ -365,7 +329,7 @@ class LLMManipulator(ScriptedManipulator):
             action="sell" if pumping else "buy",
             trade=", ".join(map(str, self.trade_periods)),
             dir="up" if pumping else "down",
-            k=self.msgs_per_period,
+            k=MESSAGES_PER_PERIOD,
         )
         price_items = []
         for p in obs.price_history:
@@ -393,7 +357,7 @@ class LLMManipulator(ScriptedManipulator):
         )
         texts: list[str] = []
         if res.valid:
-            texts = res.parsed["messages"][: self.msgs_per_period]
+            texts = res.parsed["messages"][:MESSAGES_PER_PERIOD]
         rng = random.Random(stable_int("manip", self.seed, period))
         out = []
         for t in texts:

@@ -28,8 +28,7 @@ class MessageType:
 
 
 class MessageBank:
-    def __init__(self, data: dict, source: str = "?") -> None:
-        self.source = source
+    def __init__(self, data: dict) -> None:
         self.ticker = data["ticker"]
         self.types: dict[str, MessageType] = {}
         for name, t in data["types"].items():
@@ -58,7 +57,7 @@ class MessageBank:
             data = json.loads(path.read_text(encoding="utf-8"))
         else:
             data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        return cls(data, source=str(path))
+        return cls(data)
 
 
 def neutral_messages(

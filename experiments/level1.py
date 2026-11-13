@@ -17,7 +17,7 @@ p.add_argument("--fmt", default="a", choices=["a", "b"])
 p.add_argument("--dry-run", action="store_true", help="only count the calls")
 a = p.parse_args()
 if not a.model and not a.dry_run:
-    p.error("нужен --model (или --dry-run)")
+    p.error("--model is required (or --dry-run)")
 conditions = a.conditions.split(",") if a.conditions else None
 
 if a.dry_run:

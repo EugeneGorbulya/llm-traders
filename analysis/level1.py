@@ -3,13 +3,16 @@
 import argparse
 from pathlib import Path
 
+from llmtraders import level1
 from llmtraders.analysis import write
 from llmtraders.results import RESULTS
 
 p = argparse.ArgumentParser()
-p.add_argument("dirs", nargs="+", type=Path)
+# No directories: every level-1 run (results/level1/*/ would also catch extra/).
+p.add_argument("dirs", nargs="*", type=Path)
 p.add_argument("--out", type=Path)
 a = p.parse_args()
+a.dirs = a.dirs or level1.run_dirs()
 
 missing = [str(d) for d in a.dirs if not (d / "results.jsonl").exists()]
 if missing:

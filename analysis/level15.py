@@ -3,13 +3,16 @@
 import argparse
 from pathlib import Path
 
+from llmtraders import level15
 from llmtraders.analysis15 import write
 from llmtraders.results import RESULTS
 
 p = argparse.ArgumentParser()
-p.add_argument("dirs", nargs="+", type=Path)
+# No directories: the runs with every seed of configs/level15.yaml (not the smoke runs).
+p.add_argument("dirs", nargs="*", type=Path)
 p.add_argument("--out", type=Path, default=RESULTS / "level15")
 a = p.parse_args()
+a.dirs = a.dirs or level15.full_runs()
 
 missing = [str(d) for d in a.dirs if not (d / "sessions.jsonl").exists()]
 if missing:

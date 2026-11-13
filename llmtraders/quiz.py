@@ -12,7 +12,7 @@ from .bayes import posterior_high
 from .core import N_PERIODS, DecisionContext, Observation, PricePoint
 from .llm.config import get_model
 from .prompts import PromptConfig
-from .results import RESULTS, make_client
+from .results import RESULTS, make_client, write_jsonl
 
 QUIZ_DIR = RESULTS / "quiz"
 
@@ -99,10 +99,7 @@ def run(
                     "error": d.meta.get("error"),
                 }
             )
-    (out / "results.jsonl").write_text(
-        "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
-        encoding="utf-8",
-    )
+    write_jsonl(out / "results.jsonl", rows)
     res = {"model": model, **score(rows)}
     (out / "score.json").write_text(json.dumps(res, indent=2), encoding="utf-8")
     return res
